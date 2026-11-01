@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import Link from 'next/link';
 import QRCode from 'qrcode';
 import { restaurantConfig } from '../data/config';
 
@@ -28,10 +29,7 @@ export default function QRManager() {
     <main className="qr-page">
       <header className="qr-header">
         <div><span className="private-badge">PRIVATE STAFF PAGE</span><h1>Printable table QR cards</h1><p>Choose how many tables you need, then print. Each code opens the menu with the correct table number already attached.</p></div>
-        {/* A plain <a> on purpose: next/link crashes under vinext 1.0.0-beta.3 (click does nothing).
-            Switch to <Link> after the move to standard Next.js. */}
-        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-        <a className="back-link" href="/?table=1">Test Table 1 →</a>
+        <Link className="back-link" href="/?table=1">Test Table 1 →</Link>
       </header>
 
       <section className="qr-controls" aria-label="QR card controls">
