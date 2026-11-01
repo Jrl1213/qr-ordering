@@ -17,7 +17,7 @@ const copy = {
     noTableTitle: 'No table number found', noTableBody: 'Please scan the QR code on your table, or add ?table=1 to the web address for this demo.',
     choose: 'Make it yours', option: 'Option', spice: 'Spice level', quantity: 'Quantity', note: 'Special note (optional)', noteHint: 'e.g. no spring onion', cancel: 'Cancel', addToOrder: 'Add to order', updateOrder: 'Update item',
     yourOrder: 'Your order', empty: 'Your cart is empty', emptyBody: 'Add a dish to start your table order.', cart: 'View cart', edit: 'Edit', remove: 'Remove', subtotal: 'Subtotal', serviceTax: 'Service tax', total: 'Total', continue: 'Continue browsing', preview: 'Preview order message',
-    previewTitle: 'Check your WhatsApp message', previewBody: 'This is the exact message that will open in WhatsApp. Nothing is submitted by this demo.', whatsappPlaceholder: 'Placeholder WhatsApp number', openWhatsapp: 'Open WhatsApp', close: 'Close',
+    previewTitle: 'Check your WhatsApp message', previewBody: 'This is the exact message that will open in WhatsApp. Nothing is submitted by this demo.', sendsTo: 'Sends to', noNumber: 'Demo: no shop number is set, so WhatsApp will ask you to choose a chat.', openWhatsapp: 'Open WhatsApp', close: 'Close',
     demo: 'Demo only — orders are not actually submitted', privacy: 'No names, phone numbers or payment details are collected.', noResults: 'No dishes match your search.', clear: 'Clear search', qrManager: 'Staff QR cards',
   },
   zh: {
@@ -26,7 +26,7 @@ const copy = {
     noTableTitle: '找不到桌號', noTableBody: '請掃描桌上的 QR 碼，或在示範網址後加入 ?table=1。',
     choose: '選擇口味', option: '選項', spice: '辣度', quantity: '數量', note: '備註（選填）', noteHint: '例如：不要蔥', cancel: '取消', addToOrder: '加入訂單', updateOrder: '更新品項',
     yourOrder: '您的訂單', empty: '購物車是空的', emptyBody: '加入一道餐點開始點餐。', cart: '查看購物車', edit: '編輯', remove: '移除', subtotal: '小計', serviceTax: '服務稅', total: '總計', continue: '繼續選購', preview: '預覽訂單訊息',
-    previewTitle: '檢查 WhatsApp 訊息', previewBody: '以下訊息將在 WhatsApp 中開啟。本示範不會實際提交訂單。', whatsappPlaceholder: 'WhatsApp 示範號碼', openWhatsapp: '開啟 WhatsApp', close: '關閉',
+    previewTitle: '檢查 WhatsApp 訊息', previewBody: '以下訊息將在 WhatsApp 中開啟。本示範不會實際提交訂單。', sendsTo: '發送至', noNumber: '示範：未設定店家號碼，WhatsApp 會請您自行選擇聊天對象。', openWhatsapp: '開啟 WhatsApp', close: '關閉',
     demo: '僅供示範 — 訂單不會實際提交', privacy: '不會收集姓名、電話或付款資料。', noResults: '找不到符合的餐點。', clear: '清除搜尋', qrManager: '員工 QR 卡',
   },
   ms: {
@@ -35,7 +35,7 @@ const copy = {
     noTableTitle: 'Nombor meja tiada', noTableBody: 'Sila imbas kod QR di meja anda, atau tambah ?table=1 pada alamat web untuk demo ini.',
     choose: 'Pilih citarasa anda', option: 'Pilihan', spice: 'Tahap pedas', quantity: 'Kuantiti', note: 'Nota khas (pilihan)', noteHint: 'cth. tanpa daun bawang', cancel: 'Batal', addToOrder: 'Tambah ke pesanan', updateOrder: 'Kemas kini item',
     yourOrder: 'Pesanan anda', empty: 'Troli anda kosong', emptyBody: 'Tambah hidangan untuk mula memesan.', cart: 'Lihat troli', edit: 'Edit', remove: 'Buang', subtotal: 'Jumlah kecil', serviceTax: 'Cukai perkhidmatan', total: 'Jumlah', continue: 'Teruskan memilih', preview: 'Pratonton mesej pesanan',
-    previewTitle: 'Semak mesej WhatsApp', previewBody: 'Inilah mesej yang akan dibuka dalam WhatsApp. Tiada pesanan dihantar oleh demo ini.', whatsappPlaceholder: 'Nombor WhatsApp contoh', openWhatsapp: 'Buka WhatsApp', close: 'Tutup',
+    previewTitle: 'Semak mesej WhatsApp', previewBody: 'Inilah mesej yang akan dibuka dalam WhatsApp. Tiada pesanan dihantar oleh demo ini.', sendsTo: 'Dihantar ke', noNumber: 'Demo: tiada nombor kedai, jadi WhatsApp akan minta anda pilih sembang.', openWhatsapp: 'Buka WhatsApp', close: 'Tutup',
     demo: 'Demo sahaja — pesanan tidak dihantar', privacy: 'Nama, nombor telefon dan butiran pembayaran tidak dikumpul.', noResults: 'Tiada hidangan sepadan.', clear: 'Kosongkan carian', qrManager: 'Kad QR staf',
   },
 } as const;
@@ -116,6 +116,7 @@ export default function Home() {
     return [`🍜 *${restaurantConfig.name}*`, `📍 ${t.table} ${table ?? '—'} · ${t.dineIn}`, '', ...lines, '', `${t.subtotal}: ${formatMoney(subtotal)}`, ...(restaurantConfig.serviceTaxEnabled ? [`${t.serviceTax} (${Math.round(restaurantConfig.serviceTaxRate * 100)}%): ${formatMoney(tax)}`] : []), `*${t.total}: ${formatMoney(total)}*`, '', `_${t.demo}_`].join('\n');
   }, [cartLines, language, subtotal, table, t, tax, total]);
 
+  // With no number (demo), wa.me lets the customer pick the chat, so we never message a stranger.
   const openWhatsapp = () => window.open(`https://wa.me/${restaurantConfig.whatsappNumber}?text=${encodeURIComponent(orderMessage)}`, '_blank', 'noopener,noreferrer');
 
   return (
@@ -176,7 +177,7 @@ export default function Home() {
         {!table && <div className="cart-warning">{t.noTableBody}</div>}<button className="primary-button" type="button" disabled={!table} onClick={() => { setCartOpen(false); setMessageOpen(true); }}><span>{t.preview}</span><strong>→</strong></button></>}
       </div></section></div>}
 
-      {messageOpen && <div className="overlay"><section className="sheet preview-sheet" role="dialog" aria-modal="true" aria-labelledby="preview-title"><div className="sheet-header"><div><p className="eyebrow">WHATSAPP</p><h2 id="preview-title">{t.previewTitle}</h2></div><button className="close-button static" type="button" onClick={() => setMessageOpen(false)} aria-label={t.close}>×</button></div><div className="sheet-body"><p className="preview-intro">{t.previewBody}</p><div className="placeholder-number"><span>{t.whatsappPlaceholder}</span><strong>+{restaurantConfig.whatsappNumber}</strong></div><pre className="message-preview">{orderMessage}</pre><button className="whatsapp-button" type="button" onClick={openWhatsapp}><span aria-hidden="true">◉</span>{t.openWhatsapp}</button><p className="final-demo">{t.demo}</p></div></section></div>}
+      {messageOpen && <div className="overlay"><section className="sheet preview-sheet" role="dialog" aria-modal="true" aria-labelledby="preview-title"><div className="sheet-header"><div><p className="eyebrow">WHATSAPP</p><h2 id="preview-title">{t.previewTitle}</h2></div><button className="close-button static" type="button" onClick={() => setMessageOpen(false)} aria-label={t.close}>×</button></div><div className="sheet-body"><p className="preview-intro">{t.previewBody}</p><div className="placeholder-number">{restaurantConfig.whatsappNumber ? <><span>{t.sendsTo}</span><strong>+{restaurantConfig.whatsappNumber}</strong></> : <span>{t.noNumber}</span>}</div><pre className="message-preview">{orderMessage}</pre><button className="whatsapp-button" type="button" onClick={openWhatsapp}><span aria-hidden="true">◉</span>{t.openWhatsapp}</button><p className="final-demo">{t.demo}</p></div></section></div>}
     </main>
   );
 }
