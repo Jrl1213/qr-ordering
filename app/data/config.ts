@@ -10,7 +10,8 @@ export const restaurantConfig = {
   // DEMO PLACEHOLDER — replace this with the restaurant's WhatsApp number.
   // Use international format without +, spaces, or dashes (example: 60123456789).
   whatsappNumber: '60123456789',
-  cartStorageKey: 'jade-noodle-house-demo-cart-v1',
+  // v2: cart lines store option ids instead of positions. Older saved carts are ignored.
+  cartStorageKey: 'jade-noodle-house-demo-cart-v2',
   maxTables: 20,
 } as const;
 

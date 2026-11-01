@@ -13,7 +13,8 @@ export type MenuItem = {
   imageEmoji: string;
   imageTone: 'jade' | 'gold' | 'clay' | 'plum' | 'tea';
   spiceLevels?: Array<'None' | 'Mild' | 'Medium' | 'Hot'>;
-  options?: Array<{ label: Record<Language, string>; price: number }>;
+  // Option ids are saved in carts, so keep them stable when renaming or reordering options.
+  options?: Array<{ id: string; label: Record<Language, string>; price: number }>;
 };
 
 // Edit this single list to change dishes, prices, photos/placeholders and availability.
@@ -25,9 +26,9 @@ export const menuItems: MenuItem[] = [
     price: 16.90, available: true, imageEmoji: '🍜', imageTone: 'jade',
     spiceLevels: ['None', 'Mild', 'Medium', 'Hot'],
     options: [
-      { label: { en: 'Classic', zh: '經典', ms: 'Klasik' }, price: 0 },
-      { label: { en: 'Add chicken', zh: '加雞肉', ms: 'Tambah ayam' }, price: 4 },
-      { label: { en: 'Add prawns', zh: '加蝦', ms: 'Tambah udang' }, price: 6 },
+      { id: 'classic', label: { en: 'Classic', zh: '經典', ms: 'Klasik' }, price: 0 },
+      { id: 'add-chicken', label: { en: 'Add chicken', zh: '加雞肉', ms: 'Tambah ayam' }, price: 4 },
+      { id: 'add-prawns', label: { en: 'Add prawns', zh: '加蝦', ms: 'Tambah udang' }, price: 6 },
     ],
   },
   {
@@ -37,8 +38,8 @@ export const menuItems: MenuItem[] = [
     price: 21.90, available: true, imageEmoji: '🥢', imageTone: 'clay',
     spiceLevels: ['Mild', 'Medium', 'Hot'],
     options: [
-      { label: { en: 'Noodle soup', zh: '湯麵', ms: 'Mi sup' }, price: 0 },
-      { label: { en: 'Dry-tossed', zh: '乾撈', ms: 'Kering' }, price: 0 },
+      { id: 'noodle-soup', label: { en: 'Noodle soup', zh: '湯麵', ms: 'Mi sup' }, price: 0 },
+      { id: 'dry-tossed', label: { en: 'Dry-tossed', zh: '乾撈', ms: 'Kering' }, price: 0 },
     ],
   },
   {
@@ -47,7 +48,7 @@ export const menuItems: MenuItem[] = [
     description: { en: 'Vegetable wontons, bok choy and roasted mushroom broth.', zh: '素雲吞、青菜與烤菇湯。', ms: 'Wonton sayur, pak choy dan sup cendawan panggang.' },
     price: 17.90, available: true, imageEmoji: '🥟', imageTone: 'gold',
     spiceLevels: ['None', 'Mild', 'Medium'],
-    options: [{ label: { en: 'Regular', zh: '普通', ms: 'Biasa' }, price: 0 }, { label: { en: 'Extra wontons', zh: '加雲吞', ms: 'Wonton tambahan' }, price: 4 }],
+    options: [{ id: 'regular', label: { en: 'Regular', zh: '普通', ms: 'Biasa' }, price: 0 }, { id: 'extra-wontons', label: { en: 'Extra wontons', zh: '加雲吞', ms: 'Wonton tambahan' }, price: 4 }],
   },
   {
     id: 'ginger-chicken-rice', category: 'Rice', popular: true,
@@ -55,7 +56,7 @@ export const menuItems: MenuItem[] = [
     description: { en: 'Tender chicken, ginger-scallion relish and fragrant rice.', zh: '嫩雞、薑蔥醬與香米飯。', ms: 'Ayam lembut, sos halia daun bawang dan nasi wangi.' },
     price: 18.90, available: true, imageEmoji: '🍚', imageTone: 'gold',
     spiceLevels: ['None', 'Mild'],
-    options: [{ label: { en: 'Steamed chicken', zh: '白切雞', ms: 'Ayam kukus' }, price: 0 }, { label: { en: 'Roast chicken', zh: '燒雞', ms: 'Ayam panggang' }, price: 1 }],
+    options: [{ id: 'steamed-chicken', label: { en: 'Steamed chicken', zh: '白切雞', ms: 'Ayam kukus' }, price: 0 }, { id: 'roast-chicken', label: { en: 'Roast chicken', zh: '燒雞', ms: 'Ayam panggang' }, price: 1 }],
   },
   {
     id: 'claypot-mushroom-rice', category: 'Rice',
@@ -63,7 +64,7 @@ export const menuItems: MenuItem[] = [
     description: { en: 'Soy-glazed mushrooms, edamame and crispy-bottom rice.', zh: '醬香菇、毛豆與香脆鍋巴。', ms: 'Cendawan kicap, edamame dan nasi kerak rangup.' },
     price: 17.50, available: true, imageEmoji: '🍲', imageTone: 'plum',
     spiceLevels: ['None', 'Mild', 'Medium'],
-    options: [{ label: { en: 'Vegetarian', zh: '素食', ms: 'Vegetarian' }, price: 0 }, { label: { en: 'Add egg', zh: '加蛋', ms: 'Tambah telur' }, price: 2 }],
+    options: [{ id: 'vegetarian', label: { en: 'Vegetarian', zh: '素食', ms: 'Vegetarian' }, price: 0 }, { id: 'add-egg', label: { en: 'Add egg', zh: '加蛋', ms: 'Tambah telur' }, price: 2 }],
   },
   {
     id: 'crispy-tofu-rice', category: 'Rice',
@@ -78,7 +79,7 @@ export const menuItems: MenuItem[] = [
     description: { en: 'Three smoky skewers with sesame, lime and house glaze.', zh: '三串炭香雞肉，配芝麻、青檸與秘製醬。', ms: 'Tiga cucuk ayam berasap dengan bijan, limau dan sos istimewa.' },
     price: 12.90, available: true, imageEmoji: '🍢', imageTone: 'clay',
     spiceLevels: ['Mild', 'Medium', 'Hot'],
-    options: [{ label: { en: '3 skewers', zh: '3串', ms: '3 cucuk' }, price: 0 }, { label: { en: '5 skewers', zh: '5串', ms: '5 cucuk' }, price: 7 }],
+    options: [{ id: '3-skewers', label: { en: '3 skewers', zh: '3串', ms: '3 cucuk' }, price: 0 }, { id: '5-skewers', label: { en: '5 skewers', zh: '5串', ms: '5 cucuk' }, price: 7 }],
   },
   {
     id: 'king-oyster-skewers', category: 'Skewers',
@@ -99,14 +100,14 @@ export const menuItems: MenuItem[] = [
     name: { en: 'Jasmine Lime Tea', zh: '茉莉青檸茶', ms: 'Teh Melur Limau' },
     description: { en: 'Fragrant jasmine tea, fresh lime and light cane sugar.', zh: '茉莉花茶、鮮青檸與少量蔗糖。', ms: 'Teh melur wangi, limau segar dan sedikit gula tebu.' },
     price: 6.90, available: true, imageEmoji: '🍹', imageTone: 'tea',
-    options: [{ label: { en: 'Less sweet', zh: '少甜', ms: 'Kurang manis' }, price: 0 }, { label: { en: 'Regular sweet', zh: '正常甜', ms: 'Manis biasa' }, price: 0 }],
+    options: [{ id: 'less-sweet', label: { en: 'Less sweet', zh: '少甜', ms: 'Kurang manis' }, price: 0 }, { id: 'regular-sweet', label: { en: 'Regular sweet', zh: '正常甜', ms: 'Manis biasa' }, price: 0 }],
   },
   {
     id: 'roasted-rice-tea', category: 'Drinks',
     name: { en: 'Roasted Rice Tea', zh: '玄米茶', ms: 'Teh Beras Panggang' },
     description: { en: 'Toasty, soothing and served hot in a small pot.', zh: '烘烤米香，溫暖舒心，小壺熱飲。', ms: 'Harum panggang, menenangkan dan dihidang panas.' },
     price: 7.50, available: true, imageEmoji: '🍵', imageTone: 'jade',
-    options: [{ label: { en: 'Hot', zh: '熱', ms: 'Panas' }, price: 0 }, { label: { en: 'Iced', zh: '冰', ms: 'Ais' }, price: 1 }],
+    options: [{ id: 'hot', label: { en: 'Hot', zh: '熱', ms: 'Panas' }, price: 0 }, { id: 'iced', label: { en: 'Iced', zh: '冰', ms: 'Ais' }, price: 1 }],
   },
   {
     id: 'plum-soda', category: 'Drinks',

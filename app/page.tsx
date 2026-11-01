@@ -1,17 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState, useSyncExternalStore } from 'react';
 import { menuItems, type Category, type MenuItem } from './data/menu';
 import { restaurantConfig, type Language } from './data/config';
+import { cartStore, findItem, findOption, getUnitPrice, MAX_NOTE_LENGTH, MAX_QUANTITY, parseTable, type CartLine } from './lib/cart';
 
-type CartLine = {
-  key: string;
-  itemId: string;
-  quantity: number;
-  optionIndex: number;
-  spice: string;
-  note: string;
-};
+// The address bar never changes while the menu is open, so there is nothing to subscribe to.
+const subscribeToNothing = () => () => {};
 
 const categories: Category[] = ['Popular', 'Noodles', 'Rice', 'Skewers', 'Drinks'];
 
@@ -55,37 +50,25 @@ const formatMoney = (value: number) => `${restaurantConfig.currencyLabel} ${valu
 
 export default function Home() {
   const [language, setLanguage] = useState<Language>('en');
-  const [table, setTable] = useState<string | null>(null);
-  const [tableChecked, setTableChecked] = useState(false);
   const [category, setCategory] = useState<Category>('Popular');
   const [search, setSearch] = useState('');
-  const [cart, setCart] = useState<CartLine[]>([]);
-  const [cartReady, setCartReady] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [draftQuantity, setDraftQuantity] = useState(1);
-  const [draftOption, setDraftOption] = useState(0);
+  const [draftOption, setDraftOption] = useState<string | null>(null);
   const [draftSpice, setDraftSpice] = useState('None');
   const [draftNote, setDraftNote] = useState('');
   const [messageOpen, setMessageOpen] = useState(false);
   const t = copy[language];
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const value = params.get('table');
-    setTable(value && /^\d{1,3}$/.test(value) ? String(Number(value)) : null);
-    setTableChecked(true);
-    try {
-      const saved = localStorage.getItem(restaurantConfig.cartStorageKey);
-      if (saved) setCart(JSON.parse(saved) as CartLine[]);
-    } catch { /* Ignore damaged demo cart data. */ }
-    setCartReady(true);
-  }, []);
+  // null while rendering on the server, so the "no table" warning only appears once we know.
+  const locationSearch = useSyncExternalStore(subscribeToNothing, () => window.location.search, () => null);
+  const tableChecked = locationSearch !== null;
+  const table = locationSearch === null ? null : parseTable(locationSearch);
 
-  useEffect(() => {
-    if (cartReady) localStorage.setItem(restaurantConfig.cartStorageKey, JSON.stringify(cart));
-  }, [cart, cartReady]);
+  const cart = useSyncExternalStore(cartStore.subscribe, cartStore.getSnapshot, cartStore.getServerSnapshot);
+  const setCart = cartStore.update;
 
   const filteredItems = useMemo(() => {
     const query = search.trim().toLocaleLowerCase();
@@ -96,27 +79,29 @@ export default function Home() {
     });
   }, [category, search]);
 
-  const getItem = (line: CartLine) => menuItems.find((item) => item.id === line.itemId)!;
-  const getUnitPrice = (line: CartLine) => {
-    const item = getItem(line);
-    return item.price + (item.options?.[line.optionIndex]?.price ?? 0);
-  };
-  const subtotal = cart.reduce((sum, line) => sum + getUnitPrice(line) * line.quantity, 0);
+  // Cart lines joined with their dish and option. Lines whose dish is missing are skipped.
+  const cartLines = useMemo(() => cart.flatMap((line) => {
+    const item = findItem(line.itemId);
+    if (!item) return [];
+    const option = findOption(item, line.optionId);
+    return [{ line, item, option, lineTotal: getUnitPrice(item, option) * line.quantity }];
+  }), [cart]);
+  const subtotal = cartLines.reduce((sum, entry) => sum + entry.lineTotal, 0);
   const tax = restaurantConfig.serviceTaxEnabled ? subtotal * restaurantConfig.serviceTaxRate : 0;
   const total = subtotal + tax;
-  const cartCount = cart.reduce((sum, line) => sum + line.quantity, 0);
+  const cartCount = cartLines.reduce((sum, entry) => sum + entry.line.quantity, 0);
 
   const beginAdd = (item: MenuItem) => {
-    setSelectedItem(item); setEditingKey(null); setDraftQuantity(1); setDraftOption(0);
+    setSelectedItem(item); setEditingKey(null); setDraftQuantity(1); setDraftOption(item.options?.[0]?.id ?? null);
     setDraftSpice(item.spiceLevels?.[0] ?? 'None'); setDraftNote('');
   };
-  const beginEdit = (line: CartLine) => {
-    setSelectedItem(getItem(line)); setEditingKey(line.key); setDraftQuantity(line.quantity);
-    setDraftOption(line.optionIndex); setDraftSpice(line.spice); setDraftNote(line.note); setCartOpen(false);
+  const beginEdit = (line: CartLine, item: MenuItem) => {
+    setSelectedItem(item); setEditingKey(line.key); setDraftQuantity(line.quantity);
+    setDraftOption(line.optionId); setDraftSpice(line.spice); setDraftNote(line.note); setCartOpen(false);
   };
   const saveDraft = () => {
     if (!selectedItem) return;
-    const line: CartLine = { key: editingKey ?? `${selectedItem.id}-${Date.now()}`, itemId: selectedItem.id, quantity: draftQuantity, optionIndex: draftOption, spice: draftSpice, note: draftNote.trim() };
+    const line: CartLine = { key: editingKey ?? `${selectedItem.id}-${Date.now()}`, itemId: selectedItem.id, quantity: draftQuantity, optionId: draftOption, spice: draftSpice, note: draftNote.trim() };
     setCart((current) => editingKey ? current.map((entry) => entry.key === editingKey ? line : entry) : [...current, line]);
     setSelectedItem(null); setEditingKey(null);
   };
@@ -124,14 +109,12 @@ export default function Home() {
   const categoryLabel = (value: Category) => t[value.toLocaleLowerCase() as 'popular' | 'noodles' | 'rice' | 'skewers' | 'drinks'];
 
   const orderMessage = useMemo(() => {
-    const lines = cart.map((line, index) => {
-      const item = getItem(line);
-      const option = item.options?.[line.optionIndex];
+    const lines = cartLines.map(({ line, item, option, lineTotal }, index) => {
       const extras = [option?.label[language], item.spiceLevels ? `${t.spice}: ${spiceLabels[language][line.spice]}` : '', line.note ? `${t.note}: ${line.note}` : ''].filter(Boolean);
-      return `${index + 1}. ${line.quantity}× ${item.name[language]} — ${formatMoney(getUnitPrice(line) * line.quantity)}${extras.length ? `\n   ${extras.join(' · ')}` : ''}`;
+      return `${index + 1}. ${line.quantity}× ${item.name[language]} — ${formatMoney(lineTotal)}${extras.length ? `\n   ${extras.join(' · ')}` : ''}`;
     });
     return [`🍜 *${restaurantConfig.name}*`, `📍 ${t.table} ${table ?? '—'} · ${t.dineIn}`, '', ...lines, '', `${t.subtotal}: ${formatMoney(subtotal)}`, ...(restaurantConfig.serviceTaxEnabled ? [`${t.serviceTax} (${Math.round(restaurantConfig.serviceTaxRate * 100)}%): ${formatMoney(tax)}`] : []), `*${t.total}: ${formatMoney(total)}*`, '', `_${t.demo}_`].join('\n');
-  }, [cart, language, subtotal, table, t, tax, total]);
+  }, [cartLines, language, subtotal, table, t, tax, total]);
 
   const openWhatsapp = () => window.open(`https://wa.me/${restaurantConfig.whatsappNumber}?text=${encodeURIComponent(orderMessage)}`, '_blank', 'noopener,noreferrer');
 
@@ -151,7 +134,7 @@ export default function Home() {
       {tableChecked && !table && <section className="table-warning" role="alert"><span aria-hidden="true">!</span><div><strong>{t.noTableTitle}</strong><p>{t.noTableBody}</p></div></section>}
 
       <section className="hero" id="menu">
-        <p className="eyebrow">{table ? `${t.table.toLocaleUpperCase()} ${table}` : t.dineIn.toLocaleUpperCase()} · {t.dineIn.toLocaleUpperCase()}</p>
+        <p className="eyebrow">{table ? `${t.table.toLocaleUpperCase()} ${table} · ` : ''}{t.dineIn.toLocaleUpperCase()}</p>
         <h1>{t.hero}</h1>
         <p>{t.intro}</p>
         <div className="service-row"><span className="open-dot" /> {t.open} <span>·</span> {t.time}</div>
@@ -180,15 +163,15 @@ export default function Home() {
       <p className="demo-note">{t.demo}</p>
 
       {selectedItem && <div className="overlay" onMouseDown={(event) => event.target === event.currentTarget && setSelectedItem(null)}><section className="sheet item-sheet" role="dialog" aria-modal="true" aria-labelledby="item-title"><button className="close-button" type="button" onClick={() => setSelectedItem(null)} aria-label={t.close}>×</button><div className={`item-hero tone-${selectedItem.imageTone}`}><span>{selectedItem.imageEmoji}</span></div><div className="sheet-body"><p className="eyebrow">{t.choose}</p><h2 id="item-title">{selectedItem.name[language]}</h2><p className="item-description">{selectedItem.description[language]}</p>
-        {selectedItem.options && <fieldset><legend>{t.option}</legend><div className="choice-list">{selectedItem.options.map((option, index) => <label className={draftOption === index ? 'choice selected' : 'choice'} key={option.label.en}><input type="radio" name="option" checked={draftOption === index} onChange={() => setDraftOption(index)} /><span>{option.label[language]}</span><strong>{option.price ? `+${formatMoney(option.price)}` : '—'}</strong></label>)}</div></fieldset>}
+        {selectedItem.options && <fieldset><legend>{t.option}</legend><div className="choice-list">{selectedItem.options.map((option) => <label className={draftOption === option.id ? 'choice selected' : 'choice'} key={option.id}><input type="radio" name="option" checked={draftOption === option.id} onChange={() => setDraftOption(option.id)} /><span>{option.label[language]}</span><strong>{option.price ? `+${formatMoney(option.price)}` : '—'}</strong></label>)}</div></fieldset>}
         {selectedItem.spiceLevels && <fieldset><legend>{t.spice}</legend><div className="spice-list">{selectedItem.spiceLevels.map((level) => <button type="button" className={draftSpice === level ? 'spice selected' : 'spice'} key={level} onClick={() => setDraftSpice(level)} aria-pressed={draftSpice === level}><span aria-hidden="true">{level === 'None' ? '○' : level === 'Mild' ? '●' : level === 'Medium' ? '●●' : '●●●'}</span>{spiceLabels[language][level]}</button>)}</div></fieldset>}
-        <label className="note-field"><span>{t.note}</span><textarea value={draftNote} onChange={(event) => setDraftNote(event.target.value)} placeholder={t.noteHint} maxLength={120} /></label>
-        <div className="quantity-row"><span>{t.quantity}</span><div className="stepper"><button type="button" onClick={() => setDraftQuantity(Math.max(1, draftQuantity - 1))} aria-label="Decrease quantity">−</button><strong>{draftQuantity}</strong><button type="button" onClick={() => setDraftQuantity(Math.min(20, draftQuantity + 1))} aria-label="Increase quantity">＋</button></div></div>
-        <button className="primary-button" type="button" onClick={saveDraft}><span>{editingKey ? t.updateOrder : t.addToOrder}</span><strong>{formatMoney((selectedItem.price + (selectedItem.options?.[draftOption]?.price ?? 0)) * draftQuantity)}</strong></button>
+        <label className="note-field"><span>{t.note}</span><textarea value={draftNote} onChange={(event) => setDraftNote(event.target.value)} placeholder={t.noteHint} maxLength={MAX_NOTE_LENGTH} /></label>
+        <div className="quantity-row"><span>{t.quantity}</span><div className="stepper"><button type="button" onClick={() => setDraftQuantity(Math.max(1, draftQuantity - 1))} aria-label="Decrease quantity">−</button><strong>{draftQuantity}</strong><button type="button" onClick={() => setDraftQuantity(Math.min(MAX_QUANTITY, draftQuantity + 1))} aria-label="Increase quantity">＋</button></div></div>
+        <button className="primary-button" type="button" onClick={saveDraft}><span>{editingKey ? t.updateOrder : t.addToOrder}</span><strong>{formatMoney(getUnitPrice(selectedItem, findOption(selectedItem, draftOption)) * draftQuantity)}</strong></button>
       </div></section></div>}
 
       {cartOpen && <div className="overlay" onMouseDown={(event) => event.target === event.currentTarget && setCartOpen(false)}><section className="sheet cart-sheet" role="dialog" aria-modal="true" aria-labelledby="cart-title"><div className="sheet-header"><div><p className="eyebrow">{table ? `${t.table} ${table}` : t.dineIn}</p><h2 id="cart-title">{t.yourOrder}</h2></div><button className="close-button static" type="button" onClick={() => setCartOpen(false)} aria-label={t.close}>×</button></div><div className="sheet-body cart-body">
-        {!cart.length ? <div className="empty-cart"><span aria-hidden="true">🥢</span><h3>{t.empty}</h3><p>{t.emptyBody}</p><button type="button" onClick={() => setCartOpen(false)}>{t.continue}</button></div> : <><div className="cart-lines">{cart.map((line) => { const item = getItem(line); const option = item.options?.[line.optionIndex]; return <article className="cart-line" key={line.key}><div className={`cart-thumb tone-${item.imageTone}`} aria-hidden="true">{item.imageEmoji}</div><div className="cart-line-copy"><h3>{item.name[language]}</h3><p>{[option?.label[language], item.spiceLevels ? spiceLabels[language][line.spice] : '', line.note].filter(Boolean).join(' · ')}</p><div className="cart-line-actions"><div className="stepper small"><button type="button" onClick={() => changeQuantity(line.key, -1)} aria-label="Decrease quantity">−</button><strong>{line.quantity}</strong><button type="button" onClick={() => changeQuantity(line.key, 1)} aria-label="Increase quantity">＋</button></div><button type="button" className="text-button" onClick={() => beginEdit(line)}>{t.edit}</button><button type="button" className="text-button danger" onClick={() => setCart((current) => current.filter((entry) => entry.key !== line.key))}>{t.remove}</button></div></div><strong>{formatMoney(getUnitPrice(line) * line.quantity)}</strong></article>; })}</div>
+        {!cartLines.length ? <div className="empty-cart"><span aria-hidden="true">🥢</span><h3>{t.empty}</h3><p>{t.emptyBody}</p><button type="button" onClick={() => setCartOpen(false)}>{t.continue}</button></div> : <><div className="cart-lines">{cartLines.map(({ line, item, option, lineTotal }) => <article className="cart-line" key={line.key}><div className={`cart-thumb tone-${item.imageTone}`} aria-hidden="true">{item.imageEmoji}</div><div className="cart-line-copy"><h3>{item.name[language]}</h3><p>{[option?.label[language], item.spiceLevels ? spiceLabels[language][line.spice] : '', line.note].filter(Boolean).join(' · ')}</p><div className="cart-line-actions"><div className="stepper small"><button type="button" onClick={() => changeQuantity(line.key, -1)} aria-label="Decrease quantity">−</button><strong>{line.quantity}</strong><button type="button" onClick={() => changeQuantity(line.key, 1)} aria-label="Increase quantity">＋</button></div><button type="button" className="text-button" onClick={() => beginEdit(line, item)}>{t.edit}</button><button type="button" className="text-button danger" onClick={() => setCart((current) => current.filter((entry) => entry.key !== line.key))}>{t.remove}</button></div></div><strong>{formatMoney(lineTotal)}</strong></article>)}</div>
         <dl className="totals"><div><dt>{t.subtotal}</dt><dd>{formatMoney(subtotal)}</dd></div>{restaurantConfig.serviceTaxEnabled && <div><dt>{t.serviceTax} ({Math.round(restaurantConfig.serviceTaxRate * 100)}%)</dt><dd>{formatMoney(tax)}</dd></div>}<div className="grand-total"><dt>{t.total}</dt><dd>{formatMoney(total)}</dd></div></dl>
         {!table && <div className="cart-warning">{t.noTableBody}</div>}<button className="primary-button" type="button" disabled={!table} onClick={() => { setCartOpen(false); setMessageOpen(true); }}><span>{t.preview}</span><strong>→</strong></button></>}
       </div></section></div>}
