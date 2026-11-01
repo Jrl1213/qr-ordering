@@ -14,7 +14,7 @@ The ordering page reads the table number from `?table=1`. If it is missing, the 
 ## The three files beginners usually edit
 
 - `app/data/menu.ts` — dish names in English, Chinese and Malay; descriptions; prices; categories; availability; spice levels; choices; and safe photo placeholders.
-- `app/data/config.ts` — restaurant name, service-tax rate, currency, WhatsApp number and local-cart storage key. The WhatsApp number is empty in the demo and must be set before any real use.
+- `app/data/config.ts` — restaurant name, service-tax rate, currency, WhatsApp number, local-cart storage key and site address. The WhatsApp number is empty in the demo and must be set before any real use.
 - `app/globals.css` — site colours are at the very top under `:root`.
 
 ## Change a price or availability
@@ -39,4 +39,13 @@ Open `/?table=1`, add an item, then refresh. The cart remains on that device usi
 
 ## Validation
 
-Run `npm run build`. A successful build confirms that the pages compile for deployment.
+Run `npm run build` and `npm run lint`. The build makes a plain static website in the `out/` folder. There is no server code, so any static host can serve it.
+
+## Publish on Netlify
+
+`netlify.toml` already tells Netlify what to do (build with `npm run build`, publish the `out/` folder).
+
+1. In Netlify, choose **Add new project → Import an existing project** and pick this GitHub repo.
+2. Keep the settings it reads from `netlify.toml` and deploy.
+3. Optional: put the final address in `siteUrl` in `app/data/config.ts` (used for link previews). If it is empty, the address Netlify gives the build is used.
+4. Open `/qr` on the live site to print cards that point to the live address.

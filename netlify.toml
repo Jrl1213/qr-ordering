@@ -1,0 +1,7 @@
+# Netlify reads this file when it builds the site.
+[build]
+  command = "npm run build"
+  publish = "out"
+
+[build.environment]
+  NODE_VERSION = "22"
