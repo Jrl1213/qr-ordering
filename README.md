@@ -14,7 +14,7 @@ The ordering page reads the table number from `?table=1`. If it is missing, the 
 ## The three files beginners usually edit
 
 - `app/data/menu.ts` — dish names in English, Chinese and Malay; descriptions; prices; categories; availability; spice levels; choices; and safe photo placeholders.
-- `app/data/config.ts` — restaurant name, service-tax rate, currency, WhatsApp number and local-cart storage key. The included WhatsApp number is a demo placeholder and must be replaced before any real use.
+- `app/data/config.ts` — restaurant name, service-tax rate, currency, WhatsApp number and local-cart storage key. The WhatsApp number is empty in the demo and must be set before any real use.
 - `app/globals.css` — site colours are at the very top under `:root`.
 
 ## Change a price or availability
@@ -27,7 +27,7 @@ Open `app/data/config.ts`. Set `serviceTaxEnabled` to `true` or `false`, and set
 
 ## Change the WhatsApp destination
 
-Open `app/data/config.ts` and replace `whatsappNumber: '60123456789'`. Use international digits only—no `+`, spaces or dashes. Always send a test order before showing the site to a restaurant.
+Open `app/data/config.ts` and set `whatsappNumber` to the shop's number. Use international digits only (country code first), with no `+`, spaces or dashes. The demo leaves it empty, so WhatsApp asks the customer to choose a chat instead of messaging a made-up number. Always send a test order before showing the site to a restaurant.
 
 ## Generate table QR cards
 

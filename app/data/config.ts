@@ -7,9 +7,10 @@ export const restaurantConfig = {
   currencyLabel: 'RM',
   serviceTaxRate: 0.06,
   serviceTaxEnabled: true,
-  // DEMO PLACEHOLDER — replace this with the restaurant's WhatsApp number.
-  // Use international format without +, spaces, or dashes (example: 60123456789).
-  whatsappNumber: '60123456789',
+  // The shop's WhatsApp number: international digits only, no +, spaces or dashes.
+  // Leave it empty for the demo: WhatsApp then asks the customer to choose a chat,
+  // so a made-up number can never message a real person.
+  whatsappNumber: '' as string,
   // v2: cart lines store option ids instead of positions. Older saved carts are ignored.
   cartStorageKey: 'jade-noodle-house-demo-cart-v2',
   maxTables: 20,
