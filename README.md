@@ -16,8 +16,8 @@ The ordering page reads the table number from `?table=1`. If it is missing, the 
 Each shop has its own folder in `shops/`. The demo shop is `shops/jade-noodle-house/`.
 
 - `shops/jade-noodle-house/menu.ts` — dish names in English, Chinese and Malay; descriptions; prices; categories; availability; option groups (e.g. hot or iced, sweetness, spice level); and safe photo placeholders.
-- `shops/jade-noodle-house/config.ts` — everything else about the shop: name, logo letter, page title, languages offered, menu tabs, hero text, service tax, currency, WhatsApp number, number of tables, QR colour, site address and demo mode. `shops/types.ts` explains every setting.
-- `app/globals.css` — site colours are at the very top under `:root`.
+- `shops/jade-noodle-house/config.ts` — everything else about the shop: name, logo letter, page title, languages offered, menu tabs, hero text, service tax, currency, WhatsApp number, number of tables, brand and accent colours (used for the menu page and the QR codes; the link-preview picture `public/og.png` is still the demo's), site address and demo mode. `shops/types.ts` explains every setting.
+- `shops/theme.ts` — works out the lighter shades of the brand colour. `app/globals.css` has the neutral colours at the very top under `:root`.
 
 `app/data/shop.ts` picks which shop folder the site is built from.
 
