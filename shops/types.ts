@@ -60,8 +60,12 @@ export type ShopConfig = {
   // Raise the version number (v2 → v3) when the cart's saved format changes; older carts are then ignored.
   cartStorageKey: string;
 
-  // Colour of the printed QR codes. Keep it dark so phones can scan it.
-  qrColor: string;
+  // The shop's main colour, as hex (e.g. '#123f34'): header, buttons, prices and the printed QR codes.
+  // Must be dark: white text sits on it, text in it sits on the cream page, and phones must scan the
+  // QR codes. The lighter shades (selected choice, borders, shadows) are worked out in shops/theme.ts.
+  brandColor: string;
+  // A colour lighter than brandColor, for small text on top of it (logo letter, table number, cart bar label).
+  accentColor: string;
 };
 
 export type MenuItem = {
