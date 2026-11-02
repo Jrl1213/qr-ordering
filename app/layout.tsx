@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { assertShopIsValid } from '../shops/checkShop';
+import { themeColors, themeCssVariables } from '../shops/theme';
 import { menuItems, shopConfig } from './data/shop';
 import './globals.css';
 
@@ -38,8 +39,9 @@ export const metadata: Metadata = {
 // Colours the phone's browser bar to match the header.
 export const viewport: Viewport = { themeColor: shopConfig.brandColor };
 
-// The shop's colours, set on <html> so every rule in globals.css can use var(--brand) and var(--accent).
-const themeColors = { '--brand': shopConfig.brandColor, '--accent': shopConfig.accentColor } as CSSProperties;
+// The shop's colours and the shades worked out from them (shops/theme.ts), set on <html> so every rule
+// in globals.css can use them, e.g. var(--brand) or var(--brand-3).
+const themeStyle = themeCssVariables(themeColors(shopConfig.brandColor, shopConfig.accentColor)) as CSSProperties;
 
 export default function RootLayout({
   children,
@@ -47,7 +49,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang={shopConfig.languages[0]} style={themeColors}>
+    <html lang={shopConfig.languages[0]} style={themeStyle}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
