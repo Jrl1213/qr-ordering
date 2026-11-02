@@ -47,5 +47,6 @@ export const shopConfig: ShopConfig = {
   // v3: cart lines store one choice per option group (v2 had one option id plus a spice level).
   cartStorageKey: 'jade-noodle-house-demo-cart-v3',
 
-  qrColor: '#123f34',
+  brandColor: '#123f34',
+  accentColor: '#d9e9a4',
 };

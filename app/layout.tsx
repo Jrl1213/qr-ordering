@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import type { CSSProperties } from 'react';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { assertShopIsValid } from '../shops/checkShop';
 import { menuItems, shopConfig } from './data/shop';
@@ -34,13 +35,19 @@ export const metadata: Metadata = {
   twitter: { card: 'summary_large_image', title, description, images: [image] },
 };
 
+// Colours the phone's browser bar to match the header.
+export const viewport: Viewport = { themeColor: shopConfig.brandColor };
+
+// The shop's colours, set on <html> so every rule in globals.css can use var(--brand) and var(--accent).
+const themeColors = { '--brand': shopConfig.brandColor, '--accent': shopConfig.accentColor } as CSSProperties;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang={shopConfig.languages[0]}>
+    <html lang={shopConfig.languages[0]} style={themeColors}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

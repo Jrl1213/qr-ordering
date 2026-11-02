@@ -1,7 +1,7 @@
 import { POPULAR, type Language, type LocalText, type MenuItem, type ShopConfig } from './types';
 
 // Checks a shop's config and menu for mistakes TypeScript can't catch (empty text, a dish in a
-// missing category, a QR colour too light to scan...). Each problem is one plain-English sentence.
+// missing category, a brand colour too light to scan...). Each problem is one plain-English sentence.
 // Errors stop the build; warnings are only printed.
 
 export type ShopProblems = { errors: string[]; warnings: string[] };
@@ -9,8 +9,8 @@ export type ShopProblems = { errors: string[]; warnings: string[] };
 const ALL_LANGUAGES: Language[] = ['en', 'zh', 'ms'];
 // Lowercase letters, digits and dashes, e.g. "noodles" or "add-chicken".
 const ID_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-// Dark modules on white: WCAG's 4.5:1 contrast keeps a margin for cheap printers and phone cameras.
-const MIN_QR_CONTRAST = 4.5;
+// WCAG AA for normal text. For the QR codes it also keeps a margin for cheap printers and phone cameras.
+const MIN_CONTRAST = 4.5;
 
 export function checkShop(config: ShopConfig, menu: MenuItem[]): ShopProblems {
   const errors: string[] = [];
@@ -81,12 +81,21 @@ export function checkShop(config: ShopConfig, menu: MenuItem[]): ShopProblems {
     errors.push('serviceTaxEnabled is true but serviceTaxRate is 0: set the rate (e.g. 0.06) or turn tax off.');
   }
 
-  // --- QR colour ---
-  const contrast = contrastWithWhite(config.qrColor);
-  if (contrast === null) {
-    errors.push(`qrColor "${config.qrColor}" must be a hex colour like "#123f34".`);
-  } else if (contrast < MIN_QR_CONTRAST) {
-    errors.push(`qrColor "${config.qrColor}" is too light for phones to scan reliably (contrast ${contrast.toFixed(1)}:1 on white, needs at least ${MIN_QR_CONTRAST}:1). Pick a darker colour.`);
+  // --- Colours ---
+  // White text sits on the brand colour, and the QR codes are printed in it, so it must be dark.
+  const brandContrast = contrastWithWhite(config.brandColor);
+  if (brandContrast === null) {
+    errors.push(`brandColor "${config.brandColor}" must be a hex colour like "#123f34".`);
+  } else if (brandContrast < MIN_CONTRAST) {
+    errors.push(`brandColor "${config.brandColor}" is too light (contrast ${brandContrast.toFixed(1)}:1 on white, needs at least ${MIN_CONTRAST}:1): white text on it is hard to read and phones may not scan the QR codes. Pick a darker colour.`);
+  }
+  // The accent is used for small text on the brand colour (logo letter, table number, cart bar label).
+  // Only compared once brandColor is fine, so a bad brand colour isn't blamed on the accent too.
+  const accentContrast = contrastRatio(config.accentColor, config.brandColor);
+  if (!isHexColor(config.accentColor)) {
+    errors.push(`accentColor "${config.accentColor}" must be a hex colour like "#d9e9a4".`);
+  } else if (brandContrast !== null && brandContrast >= MIN_CONTRAST && accentContrast !== null && accentContrast < MIN_CONTRAST) {
+    errors.push(`accentColor "${config.accentColor}" is too close to brandColor (contrast ${accentContrast.toFixed(1)}:1, needs at least ${MIN_CONTRAST}:1), so text in it is hard to read. Pick a lighter accent.`);
   }
 
   // --- Categories ---
@@ -158,15 +167,28 @@ export function assertShopIsValid(config: ShopConfig, menu: MenuItem[]) {
   }
 }
 
-// WCAG contrast ratio of a hex colour against white, or null if it isn't #rgb or #rrggbb.
-export function contrastWithWhite(color: string): number | null {
-  const match = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(color ?? '');
+const HEX_COLOR = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
+// No spaces allowed: the page and the QR codes use the colour exactly as written.
+const isHexColor = (color: string) => HEX_COLOR.test(color ?? '');
+
+// WCAG relative luminance (0 = black, 1 = white) of a hex colour, or null if it isn't #rgb or #rrggbb.
+function luminance(color: string): number | null {
+  const match = HEX_COLOR.exec(color ?? '');
   if (!match) return null;
   const hex = match[1].length === 3 ? [...match[1]].map((c) => c + c).join('') : match[1];
   const channel = (start: number) => {
     const value = parseInt(hex.slice(start, start + 2), 16) / 255;
     return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
   };
-  const luminance = 0.2126 * channel(0) + 0.7152 * channel(2) + 0.0722 * channel(4);
-  return 1.05 / (luminance + 0.05);
+  return 0.2126 * channel(0) + 0.7152 * channel(2) + 0.0722 * channel(4);
 }
+
+// WCAG contrast ratio between two hex colours (1 = same, 21 = black on white), or null if either isn't a hex colour.
+export function contrastRatio(a: string, b: string): number | null {
+  const la = luminance(a);
+  const lb = luminance(b);
+  if (la === null || lb === null) return null;
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+
+export const contrastWithWhite = (color: string) => contrastRatio(color, '#ffffff');

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { menuItems, shopConfig } from '../app/data/shop';
-import { assertShopIsValid, checkShop, contrastWithWhite } from './checkShop';
+import { assertShopIsValid, checkShop, contrastRatio, contrastWithWhite } from './checkShop';
 import type { MenuItem, ShopConfig } from './types';
 
 const label = { en: 'JRL', zh: 'JRL', ms: 'JRL' };
@@ -44,18 +44,29 @@ describe('checkShop', () => {
     expect(errorsFor({ maxTables: 2.5 })[0]).toMatch(/whole number/);
   });
 
-  it('needs a QR colour dark enough to scan', () => {
-    expect(errorsFor({ qrColor: '#8fd3b0' })[0]).toMatch(/too light/);
-    expect(errorsFor({ qrColor: 'green' })[0]).toMatch(/hex colour/);
-    expect(errorsFor({ qrColor: '#000' })).toEqual([]);
-    // The QR page uses the colour as written, so spaces must fail here.
-    expect(errorsFor({ qrColor: ' #123f34' })[0]).toMatch(/hex colour/);
+  it('needs a brand colour dark enough for white text and QR codes', () => {
+    expect(errorsFor({ brandColor: '#8fd3b0' })[0]).toMatch(/brandColor "#8fd3b0" is too light/);
+    expect(errorsFor({ brandColor: 'green' })[0]).toMatch(/brandColor "green" must be a hex colour/);
+    expect(errorsFor({ brandColor: '#000' })).toEqual([]);
+    // The page and the QR codes use the colour as written, so spaces must fail here.
+    expect(errorsFor({ brandColor: ' #123f34' })[0]).toMatch(/hex colour/);
+  });
+
+  it('needs an accent colour that stands out on the brand colour', () => {
+    expect(errorsFor({ accentColor: '#2d5a4c' })[0]).toMatch(/accentColor "#2d5a4c" is too close to brandColor/);
+    expect(errorsFor({ accentColor: 'lime' })[0]).toMatch(/accentColor "lime" must be a hex colour/);
+    expect(errorsFor({ brandColor: '#8b1e2d', accentColor: '#ffd9a0' })).toEqual([]);
+    // A broken or too-light brand colour gives one error, not a second one about the accent.
+    expect(errorsFor({ brandColor: 'red' })).toHaveLength(1);
+    expect(errorsFor({ brandColor: '#d9e9a4' })).toHaveLength(1);
   });
 
   it('works out contrast like WCAG', () => {
     expect(contrastWithWhite('#000000')).toBeCloseTo(21);
     expect(contrastWithWhite('#ffffff')).toBeCloseTo(1);
     expect(contrastWithWhite('#767676')).toBeCloseTo(4.54, 1);
+    expect(contrastRatio('#d9e9a4', '#123f34')).toBeCloseTo(contrastRatio('#123f34', '#d9e9a4')!);
+    expect(contrastRatio('#123456', 'blue')).toBeNull();
   });
 
   it('catches a tax rate written as a percent', () => {
@@ -110,6 +121,6 @@ describe('checkShop', () => {
   });
 
   it('stops with every error listed', () => {
-    expect(() => assertShopIsValid({ ...shopConfig, maxTables: 0, qrColor: '#fff' }, menuItems)).toThrow(/2 problem\(s\)[\s\S]*maxTables[\s\S]*qrColor/);
+    expect(() => assertShopIsValid({ ...shopConfig, maxTables: 0, brandColor: '#fff' }, menuItems)).toThrow(/2 problem\(s\)[\s\S]*maxTables[\s\S]*brandColor/);
   });
 });

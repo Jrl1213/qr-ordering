@@ -19,7 +19,7 @@ export default function QRManager() {
     let active = true;
     Promise.all(tables.map(async (table) => {
       const url = `${origin}/?table=${table}`;
-      const image = await QRCode.toDataURL(url, { width: 328, margin: 0, errorCorrectionLevel: 'M', color: { dark: shopConfig.qrColor, light: '#ffffff' } });
+      const image = await QRCode.toDataURL(url, { width: 328, margin: 0, errorCorrectionLevel: 'M', color: { dark: shopConfig.brandColor, light: '#ffffff' } });
       return [table, image] as const;
     })).then((entries) => { if (active) setQrImages(Object.fromEntries(entries)); });
     return () => { active = false; };
