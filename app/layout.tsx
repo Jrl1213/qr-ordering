@@ -1,7 +1,12 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import { shopConfig } from './data/shop';
+import { assertShopIsValid } from '../shops/checkShop';
+import { menuItems, shopConfig } from './data/shop';
 import './globals.css';
+
+// Stops the build (and shows the problem in `npm run dev`) if the shop's config or menu has a mistake.
+// The layout only runs on the server, so this check isn't sent to customers' phones.
+assertShopIsValid(shopConfig, menuItems);
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

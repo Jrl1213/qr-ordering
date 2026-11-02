@@ -1,4 +1,5 @@
 // The shape of one shop's settings and menu. Each shop has its own folder next to this file.
+// checkShop.ts checks the values when the site is built and lists any mistakes in plain English.
 
 // Languages the app has text for. A shop picks which of these to offer.
 export type Language = 'en' | 'zh' | 'ms';
