@@ -76,6 +76,12 @@ describe('cart changes', () => {
     expect(changeLineQuantity(cart, 'a', -1)[0].quantity).toBe(1);
   });
 
+  // A reload caps saved lines at MAX_QUANTITY, so the cart must not go higher either.
+  it('never goes above the maximum quantity', () => {
+    const full = [line({ key: 'a', quantity: MAX_QUANTITY })];
+    expect(changeLineQuantity(full, 'a', 1)[0].quantity).toBe(MAX_QUANTITY);
+  });
+
   it('removes a line', () => {
     expect(removeLine(cart, 'a').map((entry) => entry.key)).toEqual(['b']);
   });

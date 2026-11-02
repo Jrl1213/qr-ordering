@@ -28,9 +28,10 @@ export const saveLine = (cart: CartLine[], line: CartLine) =>
     ? cart.map((entry) => entry.key === line.key ? line : entry)
     : [...cart, line];
 
-// Quantity never goes below 1 (use removeLine to take a dish out).
+// Quantity stays between 1 and MAX_QUANTITY, the same limit a saved cart uses
+// (use removeLine to take a dish out).
 export const changeLineQuantity = (cart: CartLine[], key: string, delta: number) =>
-  cart.map((line) => line.key === key ? { ...line, quantity: Math.max(1, line.quantity + delta) } : line);
+  cart.map((line) => line.key === key ? { ...line, quantity: Math.min(MAX_QUANTITY, Math.max(1, line.quantity + delta)) } : line);
 
 export const removeLine = (cart: CartLine[], key: string) => cart.filter((line) => line.key !== key);
 
