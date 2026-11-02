@@ -1,4 +1,4 @@
-import { restaurantConfig } from '../data/config';
+import { shopConfig } from '../data/shop';
 import type { Copy } from '../lib/copy';
 
 type Props = { message: string; t: Copy; onClose: () => void; onSend: () => void };
@@ -15,11 +15,11 @@ export function MessageSheet({ message, t, onClose, onSend }: Props) {
         <div className="sheet-body">
           <p className="preview-intro">{t.previewBody}</p>
           <div className="placeholder-number">
-            {restaurantConfig.whatsappNumber ? <><span>{t.sendsTo}</span><strong>+{restaurantConfig.whatsappNumber}</strong></> : <span>{t.noNumber}</span>}
+            {shopConfig.whatsappNumber ? <><span>{t.sendsTo}</span><strong>+{shopConfig.whatsappNumber}</strong></> : <span>{t.noNumber}</span>}
           </div>
           <pre className="message-preview">{message}</pre>
           <button className="whatsapp-button" type="button" onClick={onSend}><span aria-hidden="true">◉</span>{t.openWhatsapp}</button>
-          <p className="final-demo">{t.demo}</p>
+          {shopConfig.demoMode && <p className="final-demo">{t.demo}</p>}
         </div>
       </section>
     </div>

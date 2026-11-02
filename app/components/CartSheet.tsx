@@ -1,5 +1,4 @@
-import type { Language } from '../data/config';
-import type { MenuItem } from '../data/menu';
+import { shopConfig, type Language, type MenuItem } from '../data/shop';
 import type { CartLine } from '../lib/cart';
 import { spiceLabels, type Copy } from '../lib/copy';
 import { formatMoney, taxPercent, type CartEntry, type Totals } from '../lib/pricing';
@@ -29,7 +28,7 @@ export function CartSheet({ entries, totals, table, t, language, onClose, onChan
         <div className="sheet-body cart-body">
           {!entries.length ? (
             <div className="empty-cart">
-              <span aria-hidden="true">🥢</span>
+              <span aria-hidden="true">{shopConfig.emptyCartEmoji}</span>
               <h3>{t.empty}</h3>
               <p>{t.emptyBody}</p>
               <button type="button" onClick={onClose}>{t.continue}</button>

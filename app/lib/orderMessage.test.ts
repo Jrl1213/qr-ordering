@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { CartLine } from './cart';
+import { shopConfig } from '../data/shop';
 import { buildOrderMessage, whatsappLink } from './orderMessage';
 import { calculateTotals, priceCart } from './pricing';
 
@@ -68,6 +69,13 @@ describe('buildOrderMessage', () => {
     const message = buildOrderMessage(entries, noTax, 'en', '5');
     expect(message).not.toContain('Service tax');
     expect(message).toContain('*Total: RM 58.10*');
+  });
+
+  it('ends with the total and no demo line for a real shop', () => {
+    const message = buildOrderMessage(entries, withTax, 'en', '5', { ...shopConfig, demoMode: false, name: 'JRL Test Cafe', orderEmoji: '☕' });
+    expect(message.split('\n')[0]).toBe('☕ *JRL Test Cafe*');
+    expect(message.endsWith('*Total: RM 61.59*')).toBe(true);
+    expect(message).not.toContain('Demo');
   });
 });
 

@@ -1,10 +1,9 @@
 'use client';
 
-import { useMemo, useState, useSyncExternalStore } from 'react';
-import type { MenuItem } from './data/menu';
-import type { Language } from './data/config';
+import { Fragment, useMemo, useState, useSyncExternalStore } from 'react';
+import { shopConfig, type Language, type MenuItem } from './data/shop';
 import { cartStore, changeLineQuantity, parseTable, removeLine, saveLine, type CartLine } from './lib/cart';
-import { copy } from './lib/copy';
+import { getCopy, type Copy } from './lib/copy';
 import { calculateTotals, formatMoney, priceCart } from './lib/pricing';
 import { buildOrderMessage, whatsappLink } from './lib/orderMessage';
 import { SiteHeader } from './components/SiteHeader';
@@ -19,12 +18,24 @@ const subscribeToNothing = () => () => {};
 // The dish panel that is open: a new dish, or a cart line being edited.
 type OpenItem = { item: MenuItem; editing: CartLine | null };
 
+// "Open now" and the wait time, each shown only if the shop sets it.
+function ServiceRow({ t, language }: { t: Copy; language: Language }) {
+  const parts = [shopConfig.showOpenNow ? t.open : null, shopConfig.waitTime?.[language] ?? null].filter((part) => part !== null);
+  if (!parts.length) return null;
+  return (
+    <div className="service-row">
+      {shopConfig.showOpenNow && <span className="open-dot" />}
+      {parts.map((part, index) => <Fragment key={index}>{index > 0 && <> <span>·</span></>} {part}</Fragment>)}
+    </div>
+  );
+}
+
 export default function Home() {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>(shopConfig.languages[0]);
   const [openItem, setOpenItem] = useState<OpenItem | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [messageOpen, setMessageOpen] = useState(false);
-  const t = copy[language];
+  const t = getCopy(language);
 
   // null while rendering on the server, so the "no table" warning only appears once we know.
   const locationSearch = useSyncExternalStore(subscribeToNothing, () => window.location.search, () => null);
@@ -52,20 +63,21 @@ export default function Home() {
 
       <section className="hero" id="menu">
         <p className="eyebrow">{table ? `${t.table.toLocaleUpperCase()} ${table} · ` : ''}{t.dineIn.toLocaleUpperCase()}</p>
-        <h1>{t.hero}</h1>
-        <p>{t.intro}</p>
-        <div className="service-row"><span className="open-dot" /> {t.open} <span>·</span> {t.time}</div>
+        <h1>{shopConfig.hero.heading[language]}</h1>
+        <p>{shopConfig.hero.intro[language]}</p>
+        <ServiceRow t={t} language={language} />
       </section>
 
       <MenuBrowser t={t} language={language} onAdd={(item) => setOpenItem({ item, editing: null })} />
 
-      <footer><p>{t.privacy}</p><a href="/qr" rel="nofollow">{t.qrManager} →</a></footer>
+      {/* The staff QR page is only linked in demo mode, so a real shop's customers don't see it. */}
+      <footer><p>{t.privacy}</p>{shopConfig.demoMode && <a href="/qr" rel="nofollow">{t.qrManager} →</a>}</footer>
 
       <button className="cart-bar" type="button" onClick={() => setCartOpen(true)} aria-label={`${t.cart}: ${totals.itemCount} ${t.items}, ${formatMoney(totals.total)}`}>
         <span><small>{t.yourOrder.toLocaleUpperCase()}</small>{totals.itemCount ? `${totals.itemCount} ${t.items}` : t.empty}</span>
         <strong>{totals.itemCount ? formatMoney(totals.total) : t.cart} →</strong>
       </button>
-      <p className="demo-note">{t.demo}</p>
+      {shopConfig.demoMode && <p className="demo-note">{t.demo}</p>}
 
       {openItem && (
         <ItemSheet
