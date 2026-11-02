@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { CartLine } from './cart';
 import { shopConfig } from '../data/shop';
 import { buildOrderMessage, whatsappLink } from './orderMessage';
+import { buildOrder } from './sendOrder';
 import { calculateTotals, priceCart } from './pricing';
 
 // The same order as the browser check: noodles with a note, 2 sodas, iced rice tea.
@@ -16,7 +17,7 @@ const withTax = calculateTotals(entries);
 describe('buildOrderMessage', () => {
   // Each picked choice shows as "Group: choice" so staff know which question it answers.
   it('builds the English message', () => {
-    expect(buildOrderMessage(entries, withTax, 'en', '5').split('\n')).toEqual([
+    expect(buildOrderMessage(buildOrder(entries, withTax, 'en', '5')).split('\n')).toEqual([
       '🍜 *Jade Noodle House*',
       '📍 Table 5 · Dine in',
       '',
@@ -35,7 +36,7 @@ describe('buildOrderMessage', () => {
   });
 
   it('builds the Chinese message', () => {
-    expect(buildOrderMessage(entries, withTax, 'zh', '5').split('\n')).toEqual([
+    expect(buildOrderMessage(buildOrder(entries, withTax, 'zh', '5')).split('\n')).toEqual([
       '🍜 *Jade Noodle House*',
       '📍 桌號 5 · 堂食',
       '',
@@ -54,7 +55,7 @@ describe('buildOrderMessage', () => {
   });
 
   it('uses Malay text', () => {
-    const message = buildOrderMessage(entries, withTax, 'ms', '5');
+    const message = buildOrderMessage(buildOrder(entries, withTax, 'ms', '5'));
     expect(message).toContain('📍 Meja 5 · Makan sini');
     expect(message).toContain('Tahap pedas: Sedikit');
     expect(message).toContain('*Jumlah: RM 61.59*');
@@ -62,25 +63,25 @@ describe('buildOrderMessage', () => {
 
   it('lists every group of a dish with two groups', () => {
     const tea = priceCart([{ key: 't', itemId: 'jasmine-lime-tea', quantity: 1, choices: { temperature: 'hot', sweetness: 'regular-sweet' }, note: '' }]);
-    expect(buildOrderMessage(tea, calculateTotals(tea), 'en', '3').split('\n').slice(3, 5)).toEqual([
+    expect(buildOrderMessage(buildOrder(tea, calculateTotals(tea), 'en', '3')).split('\n').slice(3, 5)).toEqual([
       '1. 1× Jasmine Lime Tea — RM 6.90',
       '   Hot or iced: Hot · Sweetness: Regular sweet',
     ]);
   });
 
   it('shows a dash when there is no table', () => {
-    expect(buildOrderMessage(entries, withTax, 'en', null)).toContain('📍 Table — · Dine in');
+    expect(buildOrderMessage(buildOrder(entries, withTax, 'en', null))).toContain('📍 Table — · Dine in');
   });
 
   it('leaves out the tax line when the shop has no service tax', () => {
     const noTax = calculateTotals(entries, { serviceTaxEnabled: false, serviceTaxRate: 0.06 });
-    const message = buildOrderMessage(entries, noTax, 'en', '5');
+    const message = buildOrderMessage(buildOrder(entries, noTax, 'en', '5'));
     expect(message).not.toContain('Service tax');
     expect(message).toContain('*Total: RM 58.10*');
   });
 
   it('ends with the total and no demo line for a real shop', () => {
-    const message = buildOrderMessage(entries, withTax, 'en', '5', { ...shopConfig, demoMode: false, name: 'JRL Test Cafe', orderEmoji: '☕' });
+    const message = buildOrderMessage(buildOrder(entries, withTax, 'en', '5'), { ...shopConfig, demoMode: false, name: 'JRL Test Cafe', orderEmoji: '☕' });
     expect(message.split('\n')[0]).toBe('☕ *JRL Test Cafe*');
     expect(message.endsWith('*Total: RM 61.59*')).toBe(true);
     expect(message).not.toContain('Demo');

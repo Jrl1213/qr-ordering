@@ -53,7 +53,7 @@ Open the shop's `config.ts`. Set `serviceTaxEnabled` to `true` or `false`, and s
 
 ## Change the WhatsApp destination
 
-Open the shop's `config.ts` and set `whatsappNumber` to the shop's number. Use international digits only (country code first), with no `+`, spaces or dashes. The demo leaves it empty, so WhatsApp asks the customer to choose a chat instead of messaging a made-up number. Always send a test order before showing the site to a restaurant.
+Orders go out through the shop's `orderChannel`; today the only choice is `'whatsapp'` (`app/lib/sendOrder.ts` builds one order and sends it, so a server channel can be added later). Open the shop's `config.ts` and set `whatsappNumber` to the shop's number. Use international digits only (country code first), with no `+`, spaces or dashes. The demo leaves it empty, so WhatsApp asks the customer to choose a chat instead of messaging a made-up number. Always send a test order before showing the site to a restaurant.
 
 ## Generate table QR cards
 
@@ -65,7 +65,7 @@ Open `/?table=1`, add an item, then refresh. The cart remains on that device usi
 
 ## Validation
 
-Run `npm test`, `npm run lint` and `npm run build`. The tests check prices, totals, the WhatsApp message, the cart, the menu tabs and search, and the demo wording (files ending in `.test.ts`). The build makes a plain static website in the `out/` folder. There is no server code, so any static host can serve it.
+Run `npm test`, `npm run lint` and `npm run build`. The tests check prices, totals, the WhatsApp message and how it is sent, the cart, the menu tabs and search, and the demo wording (files ending in `.test.ts`). The build makes a plain static website in the `out/` folder. There is no server code, so any static host can serve it.
 
 ## Publish on Netlify
 

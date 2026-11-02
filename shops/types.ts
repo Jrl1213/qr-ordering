@@ -10,6 +10,10 @@ export type LocalText = Record<Language, string>;
 // The id of the "Popular" tab. It isn't a real category: it shows dishes marked popular.
 export const POPULAR = 'popular';
 
+// How a finished order reaches the shop. Only WhatsApp today; a server (order board, level B) comes later.
+export const ORDER_CHANNELS = ['whatsapp'] as const;
+export type OrderChannel = (typeof ORDER_CHANNELS)[number];
+
 export type MenuCategory = { id: string; label: LocalText };
 
 export type ShopConfig = {
@@ -52,7 +56,9 @@ export type ShopConfig = {
   // 0.06 means 6%. Check the real rate with the shop.
   serviceTaxRate: number;
 
-  // International digits only, no +, spaces or dashes. Leave empty for a demo: WhatsApp then
+  // How orders are sent (see ORDER_CHANNELS above).
+  orderChannel: OrderChannel;
+  // For the WhatsApp channel. International digits only, no +, spaces or dashes. Leave empty for a demo: WhatsApp then
   // asks the customer to choose a chat, so a made-up number can never message a real person.
   whatsappNumber: string;
 

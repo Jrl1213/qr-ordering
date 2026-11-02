@@ -5,7 +5,8 @@ import { shopConfig, type Language, type MenuItem } from './data/shop';
 import { cartStore, changeLineQuantity, parseTable, removeLine, saveLine, type CartLine } from './lib/cart';
 import { getCopy, type Copy } from './lib/copy';
 import { calculateTotals, formatMoney, priceCart } from './lib/pricing';
-import { buildOrderMessage, whatsappLink } from './lib/orderMessage';
+import { buildOrderMessage } from './lib/orderMessage';
+import { buildOrder, sendOrder } from './lib/sendOrder';
 import { SiteHeader } from './components/SiteHeader';
 import { MenuBrowser } from './components/MenuBrowser';
 import { ItemSheet, type ItemChoice } from './components/ItemSheet';
@@ -45,7 +46,8 @@ export default function Home() {
   const cart = useSyncExternalStore(cartStore.subscribe, cartStore.getSnapshot, cartStore.getServerSnapshot);
   const entries = useMemo(() => priceCart(cart), [cart]);
   const totals = useMemo(() => calculateTotals(entries), [entries]);
-  const orderMessage = useMemo(() => buildOrderMessage(entries, totals, language, table), [entries, totals, language, table]);
+  const order = useMemo(() => buildOrder(entries, totals, language, table), [entries, totals, language, table]);
+  const orderMessage = useMemo(() => buildOrderMessage(order), [order]);
 
   const saveChoice = (choice: ItemChoice) => {
     if (!openItem) return;
@@ -111,7 +113,7 @@ export default function Home() {
           message={orderMessage}
           t={t}
           onClose={() => setMessageOpen(false)}
-          onSend={() => window.open(whatsappLink(orderMessage), '_blank', 'noopener,noreferrer')}
+          onSend={() => void sendOrder(order)}
         />
       )}
     </main>

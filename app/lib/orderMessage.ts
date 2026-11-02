@@ -1,10 +1,11 @@
-import { shopConfig, type Language, type ShopConfig } from '../data/shop';
+import { shopConfig, type ShopConfig } from '../data/shop';
 import { describeChoices } from './cart';
 import { copy } from './copy';
-import { formatMoney, taxPercent, type CartEntry, type Totals } from './pricing';
+import { formatMoney, taxPercent } from './pricing';
+import type { Order } from './sendOrder';
 
 // The order text the customer sends to the shop on WhatsApp.
-export function buildOrderMessage(entries: CartEntry[], totals: Totals, language: Language, table: string | null, shop: ShopConfig = shopConfig): string {
+export function buildOrderMessage({ entries, totals, language, table }: Order, shop: ShopConfig = shopConfig): string {
   const t = copy[language];
   const lines = entries.map(({ line, item, picked, lineTotal }, index) => {
     // "Group: choice" for each picked choice, so staff know which question it answers.
