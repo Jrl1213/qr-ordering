@@ -1,12 +1,13 @@
 import { shopConfig, type Language, type ShopConfig } from '../data/shop';
-import { copy, spiceLabels } from './copy';
+import { copy } from './copy';
 import { formatMoney, taxPercent, type CartEntry, type Totals } from './pricing';
 
 // The order text the customer sends to the shop on WhatsApp.
 export function buildOrderMessage(entries: CartEntry[], totals: Totals, language: Language, table: string | null, shop: ShopConfig = shopConfig): string {
   const t = copy[language];
-  const lines = entries.map(({ line, item, option, lineTotal }, index) => {
-    const extras = [option?.label[language], item.spiceLevels ? `${t.spice}: ${spiceLabels[language][line.spice]}` : '', line.note ? `${t.note}: ${line.note}` : ''].filter(Boolean);
+  const lines = entries.map(({ line, item, picked, lineTotal }, index) => {
+    // "Group: choice" for each picked choice, so staff know which question it answers.
+    const extras = [...picked.map(({ group, choice }) => `${group.label[language]}: ${choice.label[language]}`), line.note ? `${t.note}: ${line.note}` : ''].filter(Boolean);
     return `${index + 1}. ${line.quantity}× ${item.name[language]} — ${formatMoney(lineTotal)}${extras.length ? `\n   ${extras.join(' · ')}` : ''}`;
   });
   return [

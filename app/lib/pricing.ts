@@ -1,20 +1,22 @@
 import { shopConfig, type MenuItem } from '../data/shop';
-import { findItem, findOption, type CartLine, type MenuOption } from './cart';
+import { findItem, pickedChoices, type CartLine, type PickedChoice } from './cart';
 
 export const formatMoney = (value: number) => `${shopConfig.currencyLabel} ${value.toFixed(2)}`;
 
-export const getUnitPrice = (item: MenuItem, option: MenuOption | undefined) => item.price + (option?.price ?? 0);
+// The dish price plus the price of every picked choice.
+export const getUnitPrice = (item: MenuItem, picked: PickedChoice[]) =>
+  picked.reduce((sum, { choice }) => sum + choice.price, item.price);
 
-// One cart line joined with its dish and option, plus the line's price.
-export type CartEntry = { line: CartLine; item: MenuItem; option: MenuOption | undefined; lineTotal: number };
+// One cart line joined with its dish and picked choices, plus the line's price.
+export type CartEntry = { line: CartLine; item: MenuItem; picked: PickedChoice[]; lineTotal: number };
 
 // Joins cart lines with the menu. Lines whose dish is missing are skipped.
 export function priceCart(cart: CartLine[]): CartEntry[] {
   return cart.flatMap((line) => {
     const item = findItem(line.itemId);
     if (!item) return [];
-    const option = findOption(item, line.optionId);
-    return [{ line, item, option, lineTotal: getUnitPrice(item, option) * line.quantity }];
+    const picked = pickedChoices(item, line.choices);
+    return [{ line, item, picked, lineTotal: getUnitPrice(item, picked) * line.quantity }];
   });
 }
 

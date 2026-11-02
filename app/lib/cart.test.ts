@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { changeLineQuantity, cleanLine, MAX_NOTE_LENGTH, MAX_QUANTITY, parseSavedCart, parseTable, removeLine, saveLine, type CartLine } from './cart';
+import { changeLineQuantity, cleanLine, defaultChoices, findItem, pickedChoices, MAX_NOTE_LENGTH, MAX_QUANTITY, parseSavedCart, parseTable, removeLine, saveLine, type CartLine } from './cart';
 
 const line = (overrides: Partial<CartLine> = {}): CartLine => ({
-  key: 'a', itemId: 'jade-scallion-noodles', quantity: 1, optionId: 'classic', spice: 'None', note: '', ...overrides,
+  key: 'a', itemId: 'jade-scallion-noodles', quantity: 1, choices: { topping: 'classic', spice: 'none' }, note: '', ...overrides,
 });
 
 describe('parseTable', () => {
@@ -22,16 +22,34 @@ describe('parseTable', () => {
 
 describe('cleanLine', () => {
   it('keeps a valid line', () => {
-    expect(cleanLine(line({ optionId: 'add-prawns', spice: 'Hot', note: 'JRL test' }))).toEqual(line({ optionId: 'add-prawns', spice: 'Hot', note: 'JRL test' }));
+    const valid = line({ choices: { topping: 'add-prawns', spice: 'hot' }, note: 'JRL test' });
+    expect(cleanLine(valid)).toEqual(valid);
+  });
+
+  it('keeps a drink with two groups', () => {
+    const tea = line({ itemId: 'jasmine-lime-tea', choices: { temperature: 'hot', sweetness: 'regular-sweet' } });
+    expect(cleanLine(tea)).toEqual(tea);
+  });
+
+  it('keeps a dish with no option groups', () => {
+    expect(cleanLine(line({ itemId: 'plum-soda', choices: {} }))?.choices).toEqual({});
+  });
+
+  it('drops choices for groups the dish does not have', () => {
+    const extra = line({ choices: { topping: 'classic', spice: 'none', sweetness: 'less-sweet' } });
+    expect(cleanLine(extra)?.choices).toEqual({ topping: 'classic', spice: 'none' });
   });
 
   it.each([
     ['not an object', 'garbage'],
     ['null', null],
     ['a removed dish', line({ itemId: 'dish-that-was-deleted' })],
-    ['a sold-out dish', line({ itemId: 'crispy-tofu-rice', optionId: null })],
-    ['a removed option', line({ optionId: 'option-removed' })],
-    ['a spice level the dish does not have', line({ itemId: 'ginger-chicken-rice', optionId: 'steamed-chicken', spice: 'Hot' })],
+    ['a sold-out dish', line({ itemId: 'crispy-tofu-rice', choices: { spice: 'none' } })],
+    ['a removed choice', line({ choices: { topping: 'choice-removed', spice: 'none' } })],
+    ['a spice level the dish does not have', line({ itemId: 'ginger-chicken-rice', choices: { chicken: 'steamed-chicken', spice: 'hot' } })],
+    ['a missing group (e.g. one added after the cart was saved)', line({ itemId: 'jasmine-lime-tea', choices: { sweetness: 'less-sweet' } })],
+    ['choices that are not an object', line({ choices: 'classic' as unknown as Record<string, string> })],
+    ['an old v2 cart line (one option id plus a spice level)', { key: 'e', itemId: 'chilli-beef-noodles', quantity: 1, optionId: 'dry-tossed', spice: 'Mild', note: '' }],
     ['an old saved cart that used option positions', { key: 'e', itemId: 'chilli-beef-noodles', quantity: 1, optionIndex: 1, spice: 'Mild', note: '' }],
   ])('drops %s', (_name, raw) => {
     expect(cleanLine(raw)).toBeNull();
@@ -45,6 +63,24 @@ describe('cleanLine', () => {
   });
 });
 
+describe('defaultChoices', () => {
+  it('picks the first choice of every group', () => {
+    expect(defaultChoices(findItem('jasmine-lime-tea')!)).toEqual({ temperature: 'iced', sweetness: 'less-sweet' });
+    expect(defaultChoices(findItem('chilli-beef-noodles')!)).toEqual({ style: 'noodle-soup', spice: 'mild' });
+  });
+
+  it('is empty for a dish with no groups', () => {
+    expect(defaultChoices(findItem('plum-soda')!)).toEqual({});
+  });
+});
+
+describe('pickedChoices', () => {
+  it('follows the order of the groups on the dish, not the saved order', () => {
+    const picked = pickedChoices(findItem('jasmine-lime-tea')!, { sweetness: 'regular-sweet', temperature: 'hot' });
+    expect(picked.map(({ group, choice }) => `${group.id}=${choice.id}`)).toEqual(['temperature=hot', 'sweetness=regular-sweet']);
+  });
+});
+
 describe('parseSavedCart', () => {
   it('returns an empty cart for missing or broken data', () => {
     expect(parseSavedCart(null)).toEqual([]);
@@ -53,7 +89,7 @@ describe('parseSavedCart', () => {
   });
 
   it('keeps only the valid lines', () => {
-    const saved = JSON.stringify([line({ key: 'a' }), line({ key: 'b', itemId: 'gone' }), line({ key: 'c', itemId: 'plum-soda', optionId: null })]);
+    const saved = JSON.stringify([line({ key: 'a' }), line({ key: 'b', itemId: 'gone' }), line({ key: 'c', itemId: 'plum-soda', choices: {} })]);
     expect(parseSavedCart(saved).map((entry) => entry.key)).toEqual(['a', 'c']);
   });
 });
@@ -66,9 +102,9 @@ describe('cart changes', () => {
   });
 
   it('replaces the line with the same key when editing', () => {
-    const edited = saveLine(cart, line({ key: 'a', optionId: 'add-chicken' }));
+    const edited = saveLine(cart, line({ key: 'a', choices: { topping: 'add-chicken', spice: 'none' } }));
     expect(edited).toHaveLength(2);
-    expect(edited[0].optionId).toBe('add-chicken');
+    expect(edited[0].choices.topping).toBe('add-chicken');
   });
 
   it('changes the quantity but never below 1', () => {
