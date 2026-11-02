@@ -13,13 +13,27 @@ The ordering page reads the table number from `?table=1`. If it is missing, the 
 
 ## The files beginners usually edit
 
-Each shop has its own folder in `shops/`. The demo shop is `shops/jade-noodle-house/`.
+Each shop has its own folder in `shops/`. There are two made-up sample shops:
+
+- `shops/jade-noodle-house/` — the demo the live site is built from (noodle shop, English/Chinese/Malay, 6% service tax).
+- `shops/jrl-cafe/` — a small café set up differently on purpose (English and Malay only, no service tax, no wait time, brown theme). It is a good folder to copy.
 
 - `shops/jade-noodle-house/menu.ts` — dish names in English, Chinese and Malay; descriptions; prices; categories; availability; option groups (e.g. hot or iced, sweetness, spice level); and safe photo placeholders.
 - `shops/jade-noodle-house/config.ts` — everything else about the shop: name, logo letter, page title, languages offered, menu tabs, hero text, service tax, currency, WhatsApp number, number of tables, brand and accent colours (used for the menu page and the QR codes; the link-preview picture `public/og.png` is still the demo's), site address and demo mode. `shops/types.ts` explains every setting.
 - `shops/theme.ts` — works out the lighter shades of the brand colour. `app/globals.css` has the neutral colours at the very top under `:root`.
 
 `app/data/shop.ts` picks which shop folder the site is built from.
+
+## Make your own shop
+
+1. **Copy a sample folder.** Copy `shops/jrl-cafe/` and rename the copy, e.g. `shops/my-cafe/` (lowercase letters, digits and dashes).
+2. **Fill in `config.ts`.** Change the name, logo letter, page title, hero text, categories and colours. `shops/types.ts` explains every setting. Give it its own `cartStorageKey` (e.g. `'my-cafe-cart-v3'`), otherwise a phone that visited another shop could load that shop's cart.
+3. **Choose the languages.** List them in `languages` (the first is the default). Every text needs an entry for `en`, `zh` and `ms`, but a language you don't offer can stay `''`.
+4. **Write the menu in `menu.ts`.** One entry per dish. Each `category` must be one of the ids in `config.ts`. See "Add choices to a dish" below for options such as hot or iced.
+5. **Build it.** In `app/data/shop.ts`, change both lines from `jade-noodle-house` to your folder name. Run `npm run dev` and open `http://localhost:3000/?table=1`. If something is wrong, the terminal shows a plain-English list of problems (a missing translation, a colour too light to read, a dish in a missing category…). Fix them and save.
+6. **Check it.** Add a few dishes to the cart, open the message preview, switch languages, and open `/qr`.
+7. **Run the tests.** `npm test` checks every folder in `shops/` with the same rules as the build, so a broken sample shop is caught even when it isn't the one being built. The other tests are written for the demo shop, so **point `app/data/shop.ts` back at `jade-noodle-house` before running them** (or before committing to this repo).
+8. **Before going live** (`demoMode: false`): set the shop's real WhatsApp number, check the tax rate with the shop, send a test order to that number, and replace `public/og.png` (the link-preview picture is still the demo's). Real shops' settings (phone number, prices) don't belong in a public repo.
 
 ## Demo mode
 
@@ -65,7 +79,7 @@ Open `/?table=1`, add an item, then refresh. The cart remains on that device usi
 
 ## Validation
 
-Run `npm test`, `npm run lint` and `npm run build`. The tests check prices, totals, the WhatsApp message and how it is sent, the cart, the menu tabs and search, and the demo wording (files ending in `.test.ts`). The build makes a plain static website in the `out/` folder. There is no server code, so any static host can serve it.
+Run `npm test`, `npm run lint` and `npm run build`. The tests check prices, totals, the WhatsApp message and how it is sent, the cart, the menu tabs and search, the demo wording, and every shop folder in `shops/` (files ending in `.test.ts`). The build makes a plain static website in the `out/` folder. There is no server code, so any static host can serve it.
 
 ## Publish on Netlify
 
