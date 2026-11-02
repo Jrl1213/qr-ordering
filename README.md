@@ -39,7 +39,7 @@ Open `/?table=1`, add an item, then refresh. The cart remains on that device usi
 
 ## Validation
 
-Run `npm run build` and `npm run lint`. The build makes a plain static website in the `out/` folder. There is no server code, so any static host can serve it.
+Run `npm test`, `npm run lint` and `npm run build`. The tests check prices, totals, the WhatsApp message, the cart and the menu search (files ending in `.test.ts`). The build makes a plain static website in the `out/` folder. There is no server code, so any static host can serve it.
 
 ## Publish on Netlify
 
