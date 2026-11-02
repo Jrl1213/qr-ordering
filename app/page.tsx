@@ -1,9 +1,10 @@
 'use client';
 
-import { Fragment, useMemo, useState, useSyncExternalStore } from 'react';
+import { Fragment, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { shopConfig, type Language, type MenuItem } from './data/shop';
 import { cartStore, changeLineQuantity, parseTable, removeLine, saveLine, type CartLine } from './lib/cart';
 import { getCopy, type Copy } from './lib/copy';
+import { languageStore } from './lib/language';
 import { calculateTotals, formatMoney, priceCart } from './lib/pricing';
 import { buildOrderMessage } from './lib/orderMessage';
 import { buildOrder } from './lib/order';
@@ -33,11 +34,15 @@ function ServiceRow({ t, language }: { t: Copy; language: Language }) {
 }
 
 export default function Home() {
-  const [language, setLanguage] = useState<Language>(shopConfig.languages[0]);
+  // Saved on the phone, so a customer who picked 中文 or BM keeps it when they come back or reload.
+  const language = useSyncExternalStore(languageStore.subscribe, languageStore.getSnapshot, languageStore.getServerSnapshot);
   const [openItem, setOpenItem] = useState<OpenItem | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [messageOpen, setMessageOpen] = useState(false);
   const t = getCopy(language);
+
+  // Screen readers and the browser's translate offer read <html lang>; the build sets the shop's first language.
+  useEffect(() => { document.documentElement.lang = language; }, [language]);
 
   // null while rendering on the server, so the "no table" warning only appears once we know.
   const locationSearch = useSyncExternalStore(subscribeToNothing, () => window.location.search, () => null);
@@ -65,7 +70,7 @@ export default function Home() {
 
   return (
     <main className="site-shell">
-      <SiteHeader t={t} table={table} language={language} onLanguageChange={setLanguage} />
+      <SiteHeader t={t} table={table} language={language} onLanguageChange={languageStore.set} />
 
       {tableChecked && !table && <section className="table-warning" role="alert"><span aria-hidden="true">!</span><div><strong>{t.noTableTitle}</strong><p>{t.noTableBody}</p></div></section>}
 
