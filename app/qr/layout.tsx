@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
+import { shopConfig } from '../data/shop';
 
 export const metadata: Metadata = {
-  title: 'Private QR Cards — Jade Noodle House',
+  title: `Private QR Cards — ${shopConfig.name}`,
   robots: { index: false, follow: false },
 };
 
