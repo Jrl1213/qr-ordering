@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import type { Language, MenuItem } from '../data/shop';
-import { defaultChoices, MAX_NOTE_LENGTH, MAX_QUANTITY, pickedChoices, type CartLine } from '../lib/cart';
+import { defaultChoices, MAX_NOTE_LENGTH, MAX_QUANTITY, optionGroupsOf, pickedChoices, type CartLine } from '../lib/cart';
 import type { Copy } from '../lib/copy';
-import { formatMoney, getUnitPrice } from '../lib/pricing';
+import { formatChoicePrice, formatMoney, getUnitPrice } from '../lib/pricing';
 
 // What the customer picked in this panel (everything in a cart line except its key and dish).
 export type ItemChoice = Pick<CartLine, 'quantity' | 'choices' | 'note'>;
@@ -32,7 +32,7 @@ export function ItemSheet({ item, editing, t, language, onSave, onClose }: Props
           <p className="eyebrow">{t.choose}</p>
           <h2 id="item-title">{item.name[language]}</h2>
           <p className="item-description">{item.description[language]}</p>
-          {item.optionGroups?.map((group) => (
+          {optionGroupsOf(item).map((group) => (
             <fieldset key={group.id}>
               <legend>{group.label[language]}</legend>
               <div className="choice-list">
@@ -40,9 +40,9 @@ export function ItemSheet({ item, editing, t, language, onSave, onClose }: Props
                   const selected = choices[group.id] === choice.id;
                   return (
                     <label className={selected ? 'choice selected' : 'choice'} key={choice.id}>
-                      <input type="radio" name={`group-${group.id}`} checked={selected} onChange={() => setChoices({ ...choices, [group.id]: choice.id })} />
+                      <input type="radio" name={`group-${group.id}`} checked={selected} onChange={() => setChoices((current) => ({ ...current, [group.id]: choice.id }))} />
                       <span>{choice.label[language]}</span>
-                      <strong>{choice.price ? `+${formatMoney(choice.price)}` : '—'}</strong>
+                      <strong>{formatChoicePrice(choice.price)}</strong>
                     </label>
                   );
                 })}

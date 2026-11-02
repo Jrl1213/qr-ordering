@@ -1,4 +1,5 @@
 import { shopConfig, type Language, type ShopConfig } from '../data/shop';
+import { describeChoices } from './cart';
 import { copy } from './copy';
 import { formatMoney, taxPercent, type CartEntry, type Totals } from './pricing';
 
@@ -7,7 +8,7 @@ export function buildOrderMessage(entries: CartEntry[], totals: Totals, language
   const t = copy[language];
   const lines = entries.map(({ line, item, picked, lineTotal }, index) => {
     // "Group: choice" for each picked choice, so staff know which question it answers.
-    const extras = [...picked.map(({ group, choice }) => `${group.label[language]}: ${choice.label[language]}`), line.note ? `${t.note}: ${line.note}` : ''].filter(Boolean);
+    const extras = [...describeChoices(picked, language), line.note ? `${t.note}: ${line.note}` : ''].filter(Boolean);
     return `${index + 1}. ${line.quantity}× ${item.name[language]} — ${formatMoney(lineTotal)}${extras.length ? `\n   ${extras.join(' · ')}` : ''}`;
   });
   return [

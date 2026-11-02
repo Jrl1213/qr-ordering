@@ -3,6 +3,10 @@ import { findItem, pickedChoices, type CartLine, type PickedChoice } from './car
 
 export const formatMoney = (value: number) => `${shopConfig.currencyLabel} ${value.toFixed(2)}`;
 
+// The price beside a choice: "—" when free, "+RM 4.00" when it costs more, "−RM 1.00" for a discount.
+export const formatChoicePrice = (price: number) =>
+  price === 0 ? '—' : `${price > 0 ? '+' : '−'}${formatMoney(Math.abs(price))}`;
+
 // The dish price plus the price of every picked choice.
 export const getUnitPrice = (item: MenuItem, picked: PickedChoice[]) =>
   picked.reduce((sum, { choice }) => sum + choice.price, item.price);

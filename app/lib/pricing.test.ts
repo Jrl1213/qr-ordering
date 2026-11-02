@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { CartLine } from './cart';
 import { findItem, pickedChoices } from './cart';
-import { calculateTotals, formatMoney, getUnitPrice, priceCart, taxPercent } from './pricing';
+import { calculateTotals, formatChoicePrice, formatMoney, getUnitPrice, priceCart, taxPercent } from './pricing';
 
 const noodles = findItem('jade-scallion-noodles')!;
 
@@ -9,6 +9,14 @@ describe('formatMoney', () => {
   it('shows the currency and 2 decimals', () => {
     expect(formatMoney(5)).toBe('RM 5.00');
     expect(formatMoney(3.486)).toBe('RM 3.49');
+  });
+});
+
+describe('formatChoicePrice', () => {
+  it('shows a dash for free, + for extra cost and − for a discount', () => {
+    expect(formatChoicePrice(0)).toBe('—');
+    expect(formatChoicePrice(4)).toBe('+RM 4.00');
+    expect(formatChoicePrice(-1)).toBe('−RM 1.00');
   });
 });
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { changeLineQuantity, cleanLine, defaultChoices, findItem, pickedChoices, MAX_NOTE_LENGTH, MAX_QUANTITY, parseSavedCart, parseTable, removeLine, saveLine, type CartLine } from './cart';
+import { changeLineQuantity, cleanLine, defaultChoices, describeChoices, findItem, pickedChoices, MAX_NOTE_LENGTH, MAX_QUANTITY, parseSavedCart, parseTable, removeLine, saveLine, type CartLine } from './cart';
 
 const line = (overrides: Partial<CartLine> = {}): CartLine => ({
   key: 'a', itemId: 'jade-scallion-noodles', quantity: 1, choices: { topping: 'classic', spice: 'none' }, note: '', ...overrides,
@@ -35,6 +35,12 @@ describe('cleanLine', () => {
     expect(cleanLine(line({ itemId: 'plum-soda', choices: {} }))?.choices).toEqual({});
   });
 
+  // A group added after the cart was saved: keep the dish and use the group's first choice.
+  it('fills a missing group with its first choice', () => {
+    const tea = line({ itemId: 'jasmine-lime-tea', choices: { sweetness: 'regular-sweet' } });
+    expect(cleanLine(tea)?.choices).toEqual({ temperature: 'iced', sweetness: 'regular-sweet' });
+  });
+
   it('drops choices for groups the dish does not have', () => {
     const extra = line({ choices: { topping: 'classic', spice: 'none', sweetness: 'less-sweet' } });
     expect(cleanLine(extra)?.choices).toEqual({ topping: 'classic', spice: 'none' });
@@ -47,7 +53,6 @@ describe('cleanLine', () => {
     ['a sold-out dish', line({ itemId: 'crispy-tofu-rice', choices: { spice: 'none' } })],
     ['a removed choice', line({ choices: { topping: 'choice-removed', spice: 'none' } })],
     ['a spice level the dish does not have', line({ itemId: 'ginger-chicken-rice', choices: { chicken: 'steamed-chicken', spice: 'hot' } })],
-    ['a missing group (e.g. one added after the cart was saved)', line({ itemId: 'jasmine-lime-tea', choices: { sweetness: 'less-sweet' } })],
     ['choices that are not an object', line({ choices: 'classic' as unknown as Record<string, string> })],
     ['an old v2 cart line (one option id plus a spice level)', { key: 'e', itemId: 'chilli-beef-noodles', quantity: 1, optionId: 'dry-tossed', spice: 'Mild', note: '' }],
     ['an old saved cart that used option positions', { key: 'e', itemId: 'chilli-beef-noodles', quantity: 1, optionIndex: 1, spice: 'Mild', note: '' }],
@@ -71,6 +76,13 @@ describe('defaultChoices', () => {
 
   it('is empty for a dish with no groups', () => {
     expect(defaultChoices(findItem('plum-soda')!)).toEqual({});
+  });
+});
+
+describe('describeChoices', () => {
+  it('names the group before each choice', () => {
+    const tea = findItem('jasmine-lime-tea')!;
+    expect(describeChoices(pickedChoices(tea, { temperature: 'hot', sweetness: 'less-sweet' }), 'en')).toEqual(['Hot or iced: Hot', 'Sweetness: Less sweet']);
   });
 });
 
