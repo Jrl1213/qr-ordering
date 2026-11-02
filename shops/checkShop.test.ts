@@ -15,7 +15,8 @@ const errorsFor = (config: Partial<ShopConfig> = {}, menu: MenuItem[] = [dish]) 
 
 describe('checkShop', () => {
   it('passes the shop this site is built for', () => {
-    expect(checkShop(shopConfig, menuItems)).toEqual({ errors: [], warnings: [] });
+    // Only errors: warnings are allowed and don't fail the build.
+    expect(checkShop(shopConfig, menuItems).errors).toEqual([]);
   });
 
   it('passes a small valid shop', () => {
@@ -47,6 +48,8 @@ describe('checkShop', () => {
     expect(errorsFor({ qrColor: '#8fd3b0' })[0]).toMatch(/too light/);
     expect(errorsFor({ qrColor: 'green' })[0]).toMatch(/hex colour/);
     expect(errorsFor({ qrColor: '#000' })).toEqual([]);
+    // The QR page uses the colour as written, so spaces must fail here.
+    expect(errorsFor({ qrColor: ' #123f34' })[0]).toMatch(/hex colour/);
   });
 
   it('works out contrast like WCAG', () => {
@@ -65,6 +68,19 @@ describe('checkShop', () => {
     expect(errorsFor({}, [{ ...dish, name: blankZh }])).toEqual(['Dish "jrl-dish" name has no text for zh.']);
     // A language the shop doesn't offer can stay blank.
     expect(errorsFor({ languages: ['en', 'ms'] }, [{ ...dish, name: blankZh }])).toEqual([]);
+    // An unknown language is one error, not one per text.
+    expect(errorsFor({ languages: ['en', 'fr' as never] })).toEqual([expect.stringMatching(/languages has fr/)]);
+  });
+
+  it('needs a link-preview description and a dish emoji', () => {
+    expect(errorsFor({ pageDescription: ' ' })[0]).toMatch(/pageDescription/);
+    expect(errorsFor({}, [{ ...dish, imageEmoji: '' }])[0]).toMatch(/imageEmoji/);
+  });
+
+  it('needs siteUrl to use https', () => {
+    expect(errorsFor({ siteUrl: 'http://jrl.example.com' })[0]).toMatch(/must start with https/);
+    expect(errorsFor({ siteUrl: 'https://jrl.example.com/' })[0]).toMatch(/must not end with/);
+    expect(errorsFor({ siteUrl: 'https://jrl.example.com' })).toEqual([]);
   });
 
   it('catches duplicate and badly written ids', () => {
@@ -81,7 +97,10 @@ describe('checkShop', () => {
     expect(errorsFor({}, [{ ...dish, optionGroups: [{ ...group, choices: [choice, choice] }] }])).toEqual(['Dish "jrl-dish", option group "size" has two choices with id "jrl-a".']);
     // A discount is fine, but not one bigger than the dish price.
     expect(errorsFor({}, [{ ...dish, optionGroups: [{ ...group, choices: [{ ...choice, price: -1 }] }] }])).toEqual([]);
-    expect(errorsFor({}, [{ ...dish, optionGroups: [{ ...group, choices: [{ ...choice, price: -11 }] }] }])[0]).toMatch(/takes off more than the dish costs/);
+    expect(errorsFor({}, [{ ...dish, optionGroups: [{ ...group, choices: [{ ...choice, price: -11 }] }] }])[0]).toMatch(/take off more than the dish costs/);
+    // Two discounts that are fine alone can add up to below 0 (10 - 6 - 6).
+    const off6 = (id: string) => ({ ...group, id, choices: [{ ...choice, price: -6 }] });
+    expect(errorsFor({}, [{ ...dish, optionGroups: [off6('jrl-a'), off6('jrl-b')] }])).toEqual([expect.stringMatching(/can cost -2\.00/)]);
   });
 
   it('warns about empty tabs but does not fail', () => {

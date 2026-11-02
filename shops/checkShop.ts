@@ -16,11 +16,13 @@ export function checkShop(config: ShopConfig, menu: MenuItem[]): ShopProblems {
   const errors: string[] = [];
   const warnings: string[] = [];
   const languages = config.languages;
+  // Unknown languages get one error below, not one per text.
+  const knownLanguages = languages.filter((language) => ALL_LANGUAGES.includes(language));
 
   // Every language the shop offers must have text, or customers see a blank.
   const needText = (text: LocalText | null | undefined, where: string) => {
     if (!text) return errors.push(`${where} is missing.`);
-    const missing = languages.filter((language) => !text[language]?.trim());
+    const missing = knownLanguages.filter((language) => !text[language]?.trim());
     if (missing.length) errors.push(`${where} has no text for ${missing.join(', ')}.`);
   };
   const needString = (value: string, where: string) => {
@@ -35,10 +37,11 @@ export function checkShop(config: ShopConfig, menu: MenuItem[]): ShopProblems {
   needString(config.name, 'The shop name (name)');
   needString(config.logoMark, 'The logo letter (logoMark)');
   needString(config.pageTitle, 'The page title (pageTitle)');
+  needString(config.pageDescription, 'The link-preview description (pageDescription)');
   needString(config.currencyLabel, 'The currency label (currencyLabel)');
   needString(config.cartStorageKey, 'The cart key (cartStorageKey)');
 
-  if (config.siteUrl && !/^https?:\/\/[^\s/]+(\/[^\s]*)?$/.test(config.siteUrl)) {
+  if (config.siteUrl && !/^https:\/\/[^\s/]+(\/[^\s]*)?$/.test(config.siteUrl)) {
     errors.push(`siteUrl "${config.siteUrl}" must start with https:// (or leave it empty to use Netlify's address).`);
   } else if (config.siteUrl.endsWith('/')) {
     errors.push(`siteUrl "${config.siteUrl}" must not end with "/".`);
@@ -104,6 +107,7 @@ export function checkShop(config: ShopConfig, menu: MenuItem[]): ShopProblems {
     const dish = `Dish "${item.id}"`;
     checkId(item.id, 'Dish');
     needText(item.name, `${dish} name`);
+    needString(item.imageEmoji, `${dish} picture emoji (imageEmoji)`);
     if (!categoryIds.includes(item.category)) {
       errors.push(`${dish} is in category "${item.category}", which isn't in categories (${categoryIds.join(', ') || 'none'}).`);
     }
@@ -121,8 +125,15 @@ export function checkShop(config: ShopConfig, menu: MenuItem[]): ShopProblems {
         checkId(choice.id, `${where} choice`);
         needText(choice.label, `${where}, choice "${choice.id}" label`);
         if (!Number.isFinite(choice.price)) errors.push(`${where}, choice "${choice.id}" price is ${choice.price}: it must be a number.`);
-        else if (item.price + choice.price < 0) errors.push(`${where}, choice "${choice.id}" takes off more than the dish costs.`);
       }
+    }
+    // Discounts from several groups add up, so check the cheapest choice of every group together.
+    const cheapest = groups.reduce((sum, group) => {
+      const prices = group.choices.map((choice) => choice.price).filter(Number.isFinite);
+      return prices.length ? sum + Math.min(...prices) : sum;
+    }, item.price);
+    if (Number.isFinite(item.price) && cheapest < 0) {
+      errors.push(`${dish} can cost ${cheapest.toFixed(2)} with its cheapest choices: the discounts take off more than the dish costs.`);
     }
   }
 
@@ -149,7 +160,7 @@ export function assertShopIsValid(config: ShopConfig, menu: MenuItem[]) {
 
 // WCAG contrast ratio of a hex colour against white, or null if it isn't #rgb or #rrggbb.
 export function contrastWithWhite(color: string): number | null {
-  const match = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(color?.trim() ?? '');
+  const match = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(color ?? '');
   if (!match) return null;
   const hex = match[1].length === 3 ? [...match[1]].map((c) => c + c).join('') : match[1];
   const channel = (start: number) => {
