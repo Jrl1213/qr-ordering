@@ -1,3 +1,4 @@
+import { useCloseOnEscape } from './useCloseOnEscape';
 import { shopConfig } from '../data/shop';
 import type { Copy } from '../lib/copy';
 
@@ -5,6 +6,7 @@ type Props = { message: string; t: Copy; onClose: () => void; onSend: () => void
 
 // Shows the exact WhatsApp message before the customer opens WhatsApp.
 export function MessageSheet({ message, t, onClose, onSend }: Props) {
+  useCloseOnEscape(onClose);
   return (
     <div className="overlay">
       <section className="sheet preview-sheet" role="dialog" aria-modal="true" aria-labelledby="preview-title">

@@ -1,3 +1,4 @@
+import { useCloseOnEscape } from './useCloseOnEscape';
 import { shopConfig, type Language, type MenuItem } from '../data/shop';
 import { describeChoices, type CartLine } from '../lib/cart';
 import type { Copy } from '../lib/copy';
@@ -18,6 +19,7 @@ type Props = {
 
 // The cart panel: lines, totals and the button to preview the WhatsApp message.
 export function CartSheet({ entries, totals, table, t, language, onClose, onChangeQuantity, onEdit, onRemove, onPreview }: Props) {
+  useCloseOnEscape(onClose);
   return (
     <div className="overlay" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="sheet cart-sheet" role="dialog" aria-modal="true" aria-labelledby="cart-title">

@@ -1,3 +1,4 @@
+import { useCloseOnEscape } from './useCloseOnEscape';
 import { useState } from 'react';
 import type { Language, MenuItem } from '../data/shop';
 import { defaultChoices, MAX_NOTE_LENGTH, MAX_QUANTITY, optionGroupsOf, pickedChoices, type CartLine } from '../lib/cart';
@@ -19,6 +20,7 @@ type Props = {
 
 // The panel for choosing a dish's options (one choice per group), note and quantity.
 export function ItemSheet({ item, editing, t, language, onSave, onClose }: Props) {
+  useCloseOnEscape(onClose);
   const [quantity, setQuantity] = useState(editing?.quantity ?? 1);
   const [choices, setChoices] = useState(() => editing?.choices ?? defaultChoices(item));
   const [note, setNote] = useState(editing?.note ?? '');
