@@ -1,6 +1,6 @@
 import { contrastRatio, luminance, parseHex } from './colors';
 import { brandTextPairs, themeColors } from './theme';
-import { POPULAR, type Language, type LocalText, type MenuItem, type ShopConfig } from './types';
+import { ORDER_CHANNELS, POPULAR, type Language, type LocalText, type MenuItem, type ShopConfig } from './types';
 
 // Checks a shop's config and menu for mistakes TypeScript can't catch (empty text, a dish in a
 // missing category, a brand colour too light to scan...). Each problem is one plain-English sentence.
@@ -60,10 +60,17 @@ export function checkShop(config: ShopConfig, menu: MenuItem[]): ShopProblems {
   needText(config.searchHint, 'The search hint (searchHint)');
   if (config.waitTime) needText(config.waitTime, 'The wait time (waitTime)');
 
-  // --- WhatsApp ---
+  // --- How orders are sent ---
+  if (!(ORDER_CHANNELS as readonly string[]).includes(config.orderChannel)) {
+    errors.push(`orderChannel "${config.orderChannel}" isn't one the app knows; use one of: ${ORDER_CHANNELS.join(', ')}.`);
+  }
+  // The number is only required for the WhatsApp channel, but a number that is filled in is always
+  // checked, so a config with a channel typo and a bad number shows both problems in one build.
   const number = config.whatsappNumber;
   if (!number) {
-    if (!config.demoMode) errors.push('whatsappNumber is empty, but demoMode is false: a real shop needs its WhatsApp number, or orders go nowhere.');
+    if (config.orderChannel === 'whatsapp' && !config.demoMode) {
+      errors.push('whatsappNumber is empty, but demoMode is false: a real shop needs its WhatsApp number, or orders go nowhere.');
+    }
   } else if (!/^\d+$/.test(number)) {
     errors.push(`whatsappNumber "${number}" must be digits only: no +, spaces or dashes (e.g. 60123456789).`);
   } else if (number.startsWith('0')) {

@@ -35,6 +35,19 @@ describe('checkShop', () => {
     expect(errorsFor({ whatsappNumber: '6012' })[0]).toMatch(/8 to 15/);
   });
 
+  it('needs an order channel the app knows', () => {
+    // A typo in a config that skipped type checking, e.g. a shop copied from an older version.
+    expect(errorsFor({ orderChannel: 'whatsap' as ShopConfig['orderChannel'] })).toEqual([
+      `orderChannel "whatsap" isn't one the app knows; use one of: whatsapp.`,
+    ]);
+  });
+
+  it('still checks the WhatsApp number when the channel has a typo, so both problems show at once', () => {
+    const errors = errorsFor({ orderChannel: 'whatsap' as ShopConfig['orderChannel'], whatsappNumber: '012-345 6789', demoMode: false });
+    expect(errors).toHaveLength(2);
+    expect(errors[1]).toMatch(/digits only/);
+  });
+
   it('needs every dish category to exist', () => {
     expect(errorsFor({}, [{ ...dish, category: 'desserts' }])).toContainEqual(expect.stringMatching(/category "desserts", which isn't in categories/));
   });

@@ -41,6 +41,7 @@ export const shopConfig: ShopConfig = {
   serviceTaxEnabled: true,
   serviceTaxRate: 0.06,
 
+  orderChannel: 'whatsapp',
   whatsappNumber: '',
 
   maxTables: 20,
