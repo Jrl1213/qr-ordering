@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+/* Tests are not part of the page, so Tailwind should not look for class names in them. */
+@source not "./**/*.test.ts";
 
 /* SITE COLOURS — beginners can safely update this palette. */
 :root {

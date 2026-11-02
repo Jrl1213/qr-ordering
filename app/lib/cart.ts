@@ -20,7 +20,19 @@ export const findItem = (itemId: string) => menuItems.find((item) => item.id ===
 export const findOption = (item: MenuItem, optionId: string | null) =>
   optionId === null ? undefined : item.options?.find((option) => option.id === optionId);
 
-export const getUnitPrice = (item: MenuItem, option: MenuOption | undefined) => item.price + (option?.price ?? 0);
+// Cart changes as plain functions: they return a new list and never change the old one.
+
+// Adds the line, or replaces the line with the same key (when editing).
+export const saveLine = (cart: CartLine[], line: CartLine) =>
+  cart.some((entry) => entry.key === line.key)
+    ? cart.map((entry) => entry.key === line.key ? line : entry)
+    : [...cart, line];
+
+// Quantity never goes below 1 (use removeLine to take a dish out).
+export const changeLineQuantity = (cart: CartLine[], key: string, delta: number) =>
+  cart.map((line) => line.key === key ? { ...line, quantity: Math.max(1, line.quantity + delta) } : line);
+
+export const removeLine = (cart: CartLine[], key: string) => cart.filter((line) => line.key !== key);
 
 // Turns one saved cart line into a clean line, or null if it no longer fits the menu
 // (dish removed or sold out, option or spice level removed, broken data).
