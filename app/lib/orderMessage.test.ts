@@ -6,25 +6,25 @@ import { calculateTotals, priceCart } from './pricing';
 
 // The same order as the browser check: noodles with a note, 2 sodas, iced rice tea.
 const cart: CartLine[] = [
-  { key: 'a', itemId: 'jade-scallion-noodles', quantity: 2, optionId: 'classic', spice: 'Mild', note: 'JRL no onion' },
-  { key: 'b', itemId: 'plum-soda', quantity: 2, optionId: null, spice: 'None', note: '' },
-  { key: 'c', itemId: 'roasted-rice-tea', quantity: 1, optionId: 'iced', spice: 'None', note: '' },
+  { key: 'a', itemId: 'jade-scallion-noodles', quantity: 2, choices: { topping: 'classic', spice: 'mild' }, note: 'JRL no onion' },
+  { key: 'b', itemId: 'plum-soda', quantity: 2, choices: {}, note: '' },
+  { key: 'c', itemId: 'roasted-rice-tea', quantity: 1, choices: { temperature: 'iced' }, note: '' },
 ];
 const entries = priceCart(cart);
 const withTax = calculateTotals(entries);
 
 describe('buildOrderMessage', () => {
-  // Copied from the message the page made before the code was split, so the text must not change.
+  // Each picked choice shows as "Group: choice" so staff know which question it answers.
   it('builds the English message', () => {
     expect(buildOrderMessage(entries, withTax, 'en', '5').split('\n')).toEqual([
       '🍜 *Jade Noodle House*',
       '📍 Table 5 · Dine in',
       '',
       '1. 2× Jade Scallion Noodles — RM 33.80',
-      '   Classic · Spice level: Mild · Special note (optional): JRL no onion',
+      '   Topping: Classic · Spice level: Mild · Special note (optional): JRL no onion',
       '2. 2× Salted Plum Soda — RM 15.80',
       '3. 1× Roasted Rice Tea — RM 8.50',
-      '   Iced',
+      '   Hot or iced: Iced',
       '',
       'Subtotal: RM 58.10',
       'Service tax (6%): RM 3.49',
@@ -40,10 +40,10 @@ describe('buildOrderMessage', () => {
       '📍 桌號 5 · 堂食',
       '',
       '1. 2× 翡翠蔥油麵 — RM 33.80',
-      '   經典 · 辣度: 微辣 · 備註（選填）: JRL no onion',
+      '   配料: 經典 · 辣度: 微辣 · 備註（選填）: JRL no onion',
       '2. 2× 鹹梅蘇打 — RM 15.80',
       '3. 1× 玄米茶 — RM 8.50',
-      '   冰',
+      '   冷熱: 冰',
       '',
       '小計: RM 58.10',
       '服務稅 (6%): RM 3.49',
@@ -58,6 +58,14 @@ describe('buildOrderMessage', () => {
     expect(message).toContain('📍 Meja 5 · Makan sini');
     expect(message).toContain('Tahap pedas: Sedikit');
     expect(message).toContain('*Jumlah: RM 61.59*');
+  });
+
+  it('lists every group of a dish with two groups', () => {
+    const tea = priceCart([{ key: 't', itemId: 'jasmine-lime-tea', quantity: 1, choices: { temperature: 'hot', sweetness: 'regular-sweet' }, note: '' }]);
+    expect(buildOrderMessage(tea, calculateTotals(tea), 'en', '3').split('\n').slice(3, 5)).toEqual([
+      '1. 1× Jasmine Lime Tea — RM 6.90',
+      '   Hot or iced: Hot · Sweetness: Regular sweet',
+    ]);
   });
 
   it('shows a dash when there is no table', () => {

@@ -1,17 +1,21 @@
+import { spiceGroup } from '../optionGroups';
 import type { MenuItem } from '../types';
 
 // Edit this single list to change dishes, prices, photos/placeholders and availability.
+// Option group and choice ids are saved in carts: keep them the same when renaming or reordering.
 export const menuItems: MenuItem[] = [
   {
     id: 'jade-scallion-noodles', category: 'noodles', popular: true,
     name: { en: 'Jade Scallion Noodles', zh: '翡翠蔥油麵', ms: 'Mi Daun Bawang Jade' },
     description: { en: 'Springy noodles, scallion oil, shiitake and jammy egg.', zh: '彈牙麵條、蔥油、香菇與溏心蛋。', ms: 'Mi kenyal, minyak daun bawang, shiitake dan telur separuh masak.' },
     price: 16.90, available: true, imageEmoji: '🍜', imageTone: 'jade',
-    spiceLevels: ['None', 'Mild', 'Medium', 'Hot'],
-    options: [
-      { id: 'classic', label: { en: 'Classic', zh: '經典', ms: 'Klasik' }, price: 0 },
-      { id: 'add-chicken', label: { en: 'Add chicken', zh: '加雞肉', ms: 'Tambah ayam' }, price: 4 },
-      { id: 'add-prawns', label: { en: 'Add prawns', zh: '加蝦', ms: 'Tambah udang' }, price: 6 },
+    optionGroups: [
+      { id: 'topping', label: { en: 'Topping', zh: '配料', ms: 'Tambahan' }, choices: [
+        { id: 'classic', label: { en: 'Classic', zh: '經典', ms: 'Klasik' }, price: 0 },
+        { id: 'add-chicken', label: { en: 'Add chicken', zh: '加雞肉', ms: 'Tambah ayam' }, price: 4 },
+        { id: 'add-prawns', label: { en: 'Add prawns', zh: '加蝦', ms: 'Tambah udang' }, price: 6 },
+      ] },
+      spiceGroup(['none', 'mild', 'medium', 'hot']),
     ],
   },
   {
@@ -19,10 +23,12 @@ export const menuItems: MenuItem[] = [
     name: { en: 'Chilli Beef Noodles', zh: '香辣牛肉麵', ms: 'Mi Daging Pedas' },
     description: { en: 'Braised beef, pickled mustard greens and aromatic chilli broth.', zh: '燉牛肉、酸菜與香辣湯底。', ms: 'Daging rebus, sawi jeruk dan sup cili wangi.' },
     price: 21.90, available: true, imageEmoji: '🥢', imageTone: 'clay',
-    spiceLevels: ['Mild', 'Medium', 'Hot'],
-    options: [
-      { id: 'noodle-soup', label: { en: 'Noodle soup', zh: '湯麵', ms: 'Mi sup' }, price: 0 },
-      { id: 'dry-tossed', label: { en: 'Dry-tossed', zh: '乾撈', ms: 'Kering' }, price: 0 },
+    optionGroups: [
+      { id: 'style', label: { en: 'Style', zh: '做法', ms: 'Gaya' }, choices: [
+        { id: 'noodle-soup', label: { en: 'Noodle soup', zh: '湯麵', ms: 'Mi sup' }, price: 0 },
+        { id: 'dry-tossed', label: { en: 'Dry-tossed', zh: '乾撈', ms: 'Kering' }, price: 0 },
+      ] },
+      spiceGroup(['mild', 'medium', 'hot']),
     ],
   },
   {
@@ -30,67 +36,80 @@ export const menuItems: MenuItem[] = [
     name: { en: 'Mushroom Wonton Noodles', zh: '香菇雲吞麵', ms: 'Mi Wonton Cendawan' },
     description: { en: 'Vegetable wontons, bok choy and roasted mushroom broth.', zh: '素雲吞、青菜與烤菇湯。', ms: 'Wonton sayur, pak choy dan sup cendawan panggang.' },
     price: 17.90, available: true, imageEmoji: '🥟', imageTone: 'gold',
-    spiceLevels: ['None', 'Mild', 'Medium'],
-    options: [{ id: 'regular', label: { en: 'Regular', zh: '普通', ms: 'Biasa' }, price: 0 }, { id: 'extra-wontons', label: { en: 'Extra wontons', zh: '加雲吞', ms: 'Wonton tambahan' }, price: 4 }],
+    optionGroups: [
+      { id: 'portion', label: { en: 'Portion', zh: '份量', ms: 'Saiz' }, choices: [{ id: 'regular', label: { en: 'Regular', zh: '普通', ms: 'Biasa' }, price: 0 }, { id: 'extra-wontons', label: { en: 'Extra wontons', zh: '加雲吞', ms: 'Wonton tambahan' }, price: 4 }] },
+      spiceGroup(['none', 'mild', 'medium']),
+    ],
   },
   {
     id: 'ginger-chicken-rice', category: 'rice', popular: true,
     name: { en: 'Ginger Chicken Rice', zh: '薑蓉雞飯', ms: 'Nasi Ayam Halia' },
     description: { en: 'Tender chicken, ginger-scallion relish and fragrant rice.', zh: '嫩雞、薑蔥醬與香米飯。', ms: 'Ayam lembut, sos halia daun bawang dan nasi wangi.' },
     price: 18.90, available: true, imageEmoji: '🍚', imageTone: 'gold',
-    spiceLevels: ['None', 'Mild'],
-    options: [{ id: 'steamed-chicken', label: { en: 'Steamed chicken', zh: '白切雞', ms: 'Ayam kukus' }, price: 0 }, { id: 'roast-chicken', label: { en: 'Roast chicken', zh: '燒雞', ms: 'Ayam panggang' }, price: 1 }],
+    optionGroups: [
+      { id: 'chicken', label: { en: 'Chicken', zh: '雞肉', ms: 'Ayam' }, choices: [{ id: 'steamed-chicken', label: { en: 'Steamed chicken', zh: '白切雞', ms: 'Ayam kukus' }, price: 0 }, { id: 'roast-chicken', label: { en: 'Roast chicken', zh: '燒雞', ms: 'Ayam panggang' }, price: 1 }] },
+      spiceGroup(['none', 'mild']),
+    ],
   },
   {
     id: 'claypot-mushroom-rice', category: 'rice',
     name: { en: 'Claypot Mushroom Rice', zh: '砂鍋香菇飯', ms: 'Nasi Cendawan Periuk Tanah' },
     description: { en: 'Soy-glazed mushrooms, edamame and crispy-bottom rice.', zh: '醬香菇、毛豆與香脆鍋巴。', ms: 'Cendawan kicap, edamame dan nasi kerak rangup.' },
     price: 17.50, available: true, imageEmoji: '🍲', imageTone: 'plum',
-    spiceLevels: ['None', 'Mild', 'Medium'],
-    options: [{ id: 'vegetarian', label: { en: 'Vegetarian', zh: '素食', ms: 'Vegetarian' }, price: 0 }, { id: 'add-egg', label: { en: 'Add egg', zh: '加蛋', ms: 'Tambah telur' }, price: 2 }],
+    optionGroups: [
+      { id: 'add-on', label: { en: 'Add-on', zh: '加料', ms: 'Tambahan' }, choices: [{ id: 'vegetarian', label: { en: 'Vegetarian', zh: '素食', ms: 'Vegetarian' }, price: 0 }, { id: 'add-egg', label: { en: 'Add egg', zh: '加蛋', ms: 'Tambah telur' }, price: 2 }] },
+      spiceGroup(['none', 'mild', 'medium']),
+    ],
   },
   {
     id: 'crispy-tofu-rice', category: 'rice',
     name: { en: 'Crispy Tofu Rice', zh: '酥脆豆腐飯', ms: 'Nasi Tauhu Rangup' },
     description: { en: 'Five-spice tofu, cucumber ribbons and sesame rice.', zh: '五香豆腐、青瓜片與芝麻飯。', ms: 'Tauhu lima rempah, hirisan timun dan nasi bijan.' },
     price: 15.90, available: false, imageEmoji: '🥡', imageTone: 'jade',
-    spiceLevels: ['None', 'Mild', 'Medium', 'Hot'],
+    optionGroups: [spiceGroup(['none', 'mild', 'medium', 'hot'])],
   },
   {
     id: 'charred-chicken-skewers', category: 'skewers', popular: true,
     name: { en: 'Charred Chicken Skewers', zh: '炭烤雞肉串', ms: 'Sate Ayam Bara' },
     description: { en: 'Three smoky skewers with sesame, lime and house glaze.', zh: '三串炭香雞肉，配芝麻、青檸與秘製醬。', ms: 'Tiga cucuk ayam berasap dengan bijan, limau dan sos istimewa.' },
     price: 12.90, available: true, imageEmoji: '🍢', imageTone: 'clay',
-    spiceLevels: ['Mild', 'Medium', 'Hot'],
-    options: [{ id: '3-skewers', label: { en: '3 skewers', zh: '3串', ms: '3 cucuk' }, price: 0 }, { id: '5-skewers', label: { en: '5 skewers', zh: '5串', ms: '5 cucuk' }, price: 7 }],
+    optionGroups: [
+      { id: 'portion', label: { en: 'Portion', zh: '份量', ms: 'Saiz' }, choices: [{ id: '3-skewers', label: { en: '3 skewers', zh: '3串', ms: '3 cucuk' }, price: 0 }, { id: '5-skewers', label: { en: '5 skewers', zh: '5串', ms: '5 cucuk' }, price: 7 }] },
+      spiceGroup(['mild', 'medium', 'hot']),
+    ],
   },
   {
     id: 'king-oyster-skewers', category: 'skewers',
     name: { en: 'King Oyster Skewers', zh: '杏鮑菇串', ms: 'Sate Cendawan Tiram Raja' },
     description: { en: 'Juicy king oyster mushrooms brushed with black pepper soy.', zh: '多汁杏鮑菇，刷上黑胡椒醬油。', ms: 'Cendawan tiram raja berjus dengan kicap lada hitam.' },
     price: 10.90, available: true, imageEmoji: '🍄', imageTone: 'plum',
-    spiceLevels: ['None', 'Mild', 'Medium'],
+    optionGroups: [spiceGroup(['none', 'mild', 'medium'])],
   },
   {
     id: 'cumin-lamb-skewers', category: 'skewers', popular: true,
     name: { en: 'Cumin Lamb Skewers', zh: '孜然羊肉串', ms: 'Sate Kambing Jintan' },
     description: { en: 'Tender lamb dusted with toasted cumin and chilli.', zh: '嫩羊肉配烤孜然與辣椒。', ms: 'Kambing lembut dengan jintan bakar dan cili.' },
     price: 15.90, available: true, imageEmoji: '🔥', imageTone: 'clay',
-    spiceLevels: ['Mild', 'Medium', 'Hot'],
+    optionGroups: [spiceGroup(['mild', 'medium', 'hot'])],
   },
   {
     id: 'jasmine-lime-tea', category: 'drinks', popular: true,
     name: { en: 'Jasmine Lime Tea', zh: '茉莉青檸茶', ms: 'Teh Melur Limau' },
     description: { en: 'Fragrant jasmine tea, fresh lime and light cane sugar.', zh: '茉莉花茶、鮮青檸與少量蔗糖。', ms: 'Teh melur wangi, limau segar dan sedikit gula tebu.' },
     price: 6.90, available: true, imageEmoji: '🍹', imageTone: 'tea',
-    options: [{ id: 'less-sweet', label: { en: 'Less sweet', zh: '少甜', ms: 'Kurang manis' }, price: 0 }, { id: 'regular-sweet', label: { en: 'Regular sweet', zh: '正常甜', ms: 'Manis biasa' }, price: 0 }],
+    optionGroups: [
+      { id: 'temperature', label: { en: 'Hot or iced', zh: '冷熱', ms: 'Panas atau ais' }, choices: [{ id: 'iced', label: { en: 'Iced', zh: '冰', ms: 'Ais' }, price: 0 }, { id: 'hot', label: { en: 'Hot', zh: '熱', ms: 'Panas' }, price: 0 }] },
+      { id: 'sweetness', label: { en: 'Sweetness', zh: '甜度', ms: 'Kemanisan' }, choices: [{ id: 'less-sweet', label: { en: 'Less sweet', zh: '少甜', ms: 'Kurang manis' }, price: 0 }, { id: 'regular-sweet', label: { en: 'Regular sweet', zh: '正常甜', ms: 'Manis biasa' }, price: 0 }] },
+    ],
   },
   {
     id: 'roasted-rice-tea', category: 'drinks',
     name: { en: 'Roasted Rice Tea', zh: '玄米茶', ms: 'Teh Beras Panggang' },
     description: { en: 'Toasty, soothing and served hot in a small pot.', zh: '烘烤米香，溫暖舒心，小壺熱飲。', ms: 'Harum panggang, menenangkan dan dihidang panas.' },
     price: 7.50, available: true, imageEmoji: '🍵', imageTone: 'jade',
-    options: [{ id: 'hot', label: { en: 'Hot', zh: '熱', ms: 'Panas' }, price: 0 }, { id: 'iced', label: { en: 'Iced', zh: '冰', ms: 'Ais' }, price: 1 }],
+    optionGroups: [
+      { id: 'temperature', label: { en: 'Hot or iced', zh: '冷熱', ms: 'Panas atau ais' }, choices: [{ id: 'hot', label: { en: 'Hot', zh: '熱', ms: 'Panas' }, price: 0 }, { id: 'iced', label: { en: 'Iced', zh: '冰', ms: 'Ais' }, price: 1 }] },
+    ],
   },
   {
     id: 'plum-soda', category: 'drinks',

@@ -15,7 +15,7 @@ The ordering page reads the table number from `?table=1`. If it is missing, the 
 
 Each shop has its own folder in `shops/`. The demo shop is `shops/jade-noodle-house/`.
 
-- `shops/jade-noodle-house/menu.ts` — dish names in English, Chinese and Malay; descriptions; prices; categories; availability; spice levels; choices; and safe photo placeholders.
+- `shops/jade-noodle-house/menu.ts` — dish names in English, Chinese and Malay; descriptions; prices; categories; availability; option groups (e.g. hot or iced, sweetness, spice level); and safe photo placeholders.
 - `shops/jade-noodle-house/config.ts` — everything else about the shop: name, logo letter, page title, languages offered, menu tabs, hero text, service tax, currency, WhatsApp number, number of tables, QR colour, site address and demo mode. `shops/types.ts` explains every setting.
 - `app/globals.css` — site colours are at the very top under `:root`.
 
@@ -28,6 +28,24 @@ Each shop has its own folder in `shops/`. The demo shop is `shops/jade-noodle-ho
 ## Change a price or availability
 
 Open the shop's `menu.ts`, find the item and change `price: 16.90`. Use `available: false` to show it as sold out. Keep prices as numbers without `RM`.
+
+## Add choices to a dish (option groups)
+
+A dish can have several pick-one questions, called option groups (for example "Hot or iced" and "Sweetness"). The customer picks one choice in each group; the first choice is picked at the start. In the shop's `menu.ts`:
+
+```ts
+optionGroups: [
+  { id: 'temperature', label: { en: 'Hot or iced', zh: '冷熱', ms: 'Panas atau ais' }, choices: [
+    { id: 'iced', label: { en: 'Iced', zh: '冰', ms: 'Ais' }, price: 0 },
+    { id: 'hot', label: { en: 'Hot', zh: '熱', ms: 'Panas' }, price: 0 },
+  ] },
+  spiceGroup(['none', 'mild', 'medium']),
+],
+```
+
+- `price` is added to the dish price (`0` for no change).
+- `spiceGroup([...])` (from `shops/optionGroups.ts`) adds a ready-made "Spice level" group with the levels you list.
+- Saved carts use the `id`s, so keep them the same when you rename or reorder choices. If you add a group to a dish or remove a choice, carts saved before that drop the dish instead of guessing what the customer wanted.
 
 ## Change service tax
 

@@ -2,4 +2,4 @@
 export { shopConfig } from '../../shops/jade-noodle-house/config';
 export { menuItems } from '../../shops/jade-noodle-house/menu';
 
-export { POPULAR, type Language, type LocalText, type MenuCategory, type MenuItem, type ShopConfig } from '../../shops/types';
+export { POPULAR, type Language, type LocalText, type MenuCategory, type MenuItem, type OptionChoice, type OptionGroup, type ShopConfig } from '../../shops/types';

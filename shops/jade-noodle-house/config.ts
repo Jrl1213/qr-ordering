@@ -44,8 +44,8 @@ export const shopConfig: ShopConfig = {
   whatsappNumber: '',
 
   maxTables: 20,
-  // v2: cart lines store option ids instead of positions.
-  cartStorageKey: 'jade-noodle-house-demo-cart-v2',
+  // v3: cart lines store one choice per option group (v2 had one option id plus a spice level).
+  cartStorageKey: 'jade-noodle-house-demo-cart-v3',
 
   qrColor: '#123f34',
 };

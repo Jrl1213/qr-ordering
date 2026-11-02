@@ -74,7 +74,14 @@ export type MenuItem = {
   available: boolean;
   imageEmoji: string;
   imageTone: 'jade' | 'gold' | 'clay' | 'plum' | 'tea';
-  spiceLevels?: Array<'None' | 'Mild' | 'Medium' | 'Hot'>;
-  // Option ids are saved in carts, so keep them stable when renaming or reordering options.
-  options?: Array<{ id: string; label: LocalText; price: number }>;
+  // Pick-one questions, shown in this order (e.g. "Hot or iced", then "Sweetness").
+  // For spice, use spiceGroup() from shops/optionGroups.ts.
+  optionGroups?: OptionGroup[];
 };
+
+// One answer in an option group. price is added to the dish price (0 for no change).
+export type OptionChoice = { id: string; label: LocalText; price: number };
+
+// A pick-one question on a dish. The customer must pick one choice; the first is picked by default.
+// Group and choice ids are saved in carts, so keep them the same when renaming or reordering.
+export type OptionGroup = { id: string; label: LocalText; choices: OptionChoice[] };

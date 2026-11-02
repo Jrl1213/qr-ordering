@@ -1,23 +1,42 @@
-import { menuItems, shopConfig, type MenuItem } from '../data/shop';
+import { menuItems, shopConfig, type Language, type MenuItem, type OptionChoice, type OptionGroup } from '../data/shop';
+
+// What the customer picked in each of the dish's option groups: group id → choice id.
+export type Choices = Record<string, string>;
 
 export type CartLine = {
   key: string;
   itemId: string;
   quantity: number;
-  optionId: string | null;
-  spice: string;
+  choices: Choices;
   note: string;
 };
 
-export type MenuOption = NonNullable<MenuItem['options']>[number];
+// One picked answer, joined with its group (for the cart and the WhatsApp message).
+export type PickedChoice = { group: OptionGroup; choice: OptionChoice };
 
 export const MAX_QUANTITY = 20;
 export const MAX_NOTE_LENGTH = 120;
 
 export const findItem = (itemId: string) => menuItems.find((item) => item.id === itemId);
 
-export const findOption = (item: MenuItem, optionId: string | null) =>
-  optionId === null ? undefined : item.options?.find((option) => option.id === optionId);
+// The dish's option groups, skipping any group with no choices (nothing to pick, so it's ignored).
+export const optionGroupsOf = (item: MenuItem): OptionGroup[] =>
+  (item.optionGroups ?? []).filter((group) => group.choices.length > 0);
+
+// The first choice of every group: what the panel shows before the customer changes anything.
+export const defaultChoices = (item: MenuItem): Choices =>
+  Object.fromEntries(optionGroupsOf(item).map((group) => [group.id, group.choices[0].id]));
+
+// The picked choices in the dish's group order. Groups with no (or an unknown) choice are left out.
+export const pickedChoices = (item: MenuItem, choices: Choices): PickedChoice[] =>
+  optionGroupsOf(item).flatMap((group) => {
+    const choice = group.choices.find((entry) => entry.id === choices[group.id]);
+    return choice ? [{ group, choice }] : [];
+  });
+
+// "Group: choice" for each pick, e.g. ["Hot or iced: Iced", "Sweetness: Less sweet"].
+export const describeChoices = (picked: PickedChoice[], language: Language) =>
+  picked.map(({ group, choice }) => `${group.label[language]}: ${choice.label[language]}`);
 
 // Cart changes as plain functions: they return a new list and never change the old one.
 
@@ -35,7 +54,9 @@ export const changeLineQuantity = (cart: CartLine[], key: string, delta: number)
 export const removeLine = (cart: CartLine[], key: string) => cart.filter((line) => line.key !== key);
 
 // Turns one saved cart line into a clean line, or null if it no longer fits the menu
-// (dish removed or sold out, option or spice level removed, broken data).
+// (dish removed or sold out, a picked choice removed, broken data).
+// A group added to the dish after the cart was saved gets its first choice, the same as the panel,
+// so the dish isn't silently lost; the customer still sees it in the cart before sending.
 export function cleanLine(raw: unknown): CartLine | null {
   if (!raw || typeof raw !== 'object') return null;
   const line = raw as Partial<Record<keyof CartLine, unknown>>;
@@ -43,16 +64,17 @@ export function cleanLine(raw: unknown): CartLine | null {
   const item = findItem(line.itemId);
   if (!item || !item.available) return null;
 
-  let optionId: string | null = null;
-  if (item.options?.length) {
-    if (typeof line.optionId !== 'string' || !findOption(item, line.optionId)) return null;
-    optionId = line.optionId;
-  }
-
-  let spice = 'None';
-  if (item.spiceLevels?.length) {
-    if (typeof line.spice !== 'string' || !(item.spiceLevels as string[]).includes(line.spice)) return null;
-    spice = line.spice;
+  if (!line.choices || typeof line.choices !== 'object' || Array.isArray(line.choices)) return null;
+  const saved = line.choices as Record<string, unknown>;
+  const choices: Choices = {};
+  for (const group of optionGroupsOf(item)) {
+    const choiceId = saved[group.id];
+    if (choiceId === undefined) {
+      choices[group.id] = group.choices[0].id;
+      continue;
+    }
+    if (typeof choiceId !== 'string' || !group.choices.some((choice) => choice.id === choiceId)) return null;
+    choices[group.id] = choiceId;
   }
 
   const quantity = typeof line.quantity === 'number' && Number.isInteger(line.quantity)
@@ -60,7 +82,7 @@ export function cleanLine(raw: unknown): CartLine | null {
     : 1;
   const note = typeof line.note === 'string' ? line.note.slice(0, MAX_NOTE_LENGTH) : '';
 
-  return { key: line.key, itemId: item.id, quantity, optionId, spice, note };
+  return { key: line.key, itemId: item.id, quantity, choices, note };
 }
 
 export function parseSavedCart(saved: string | null): CartLine[] {

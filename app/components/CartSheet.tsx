@@ -1,6 +1,6 @@
 import { shopConfig, type Language, type MenuItem } from '../data/shop';
-import type { CartLine } from '../lib/cart';
-import { spiceLabels, type Copy } from '../lib/copy';
+import { describeChoices, type CartLine } from '../lib/cart';
+import type { Copy } from '../lib/copy';
 import { formatMoney, taxPercent, type CartEntry, type Totals } from '../lib/pricing';
 
 type Props = {
@@ -36,12 +36,12 @@ export function CartSheet({ entries, totals, table, t, language, onClose, onChan
           ) : (
             <>
               <div className="cart-lines">
-                {entries.map(({ line, item, option, lineTotal }) => (
+                {entries.map(({ line, item, picked, lineTotal }) => (
                   <article className="cart-line" key={line.key}>
                     <div className={`cart-thumb tone-${item.imageTone}`} aria-hidden="true">{item.imageEmoji}</div>
                     <div className="cart-line-copy">
                       <h3>{item.name[language]}</h3>
-                      <p>{[option?.label[language], item.spiceLevels ? spiceLabels[language][line.spice] : '', line.note].filter(Boolean).join(' · ')}</p>
+                      <p>{[...describeChoices(picked, language), line.note].filter(Boolean).join(' · ')}</p>
                       <div className="cart-line-actions">
                         <div className="stepper small">
                           <button type="button" onClick={() => onChangeQuantity(line.key, -1)} aria-label="Decrease quantity">−</button>
