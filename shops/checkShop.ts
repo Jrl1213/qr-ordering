@@ -64,17 +64,19 @@ export function checkShop(config: ShopConfig, menu: MenuItem[]): ShopProblems {
   if (!(ORDER_CHANNELS as readonly string[]).includes(config.orderChannel)) {
     errors.push(`orderChannel "${config.orderChannel}" isn't one the app knows; use one of: ${ORDER_CHANNELS.join(', ')}.`);
   }
-  if (config.orderChannel === 'whatsapp') {
-    const number = config.whatsappNumber;
-    if (!number) {
-      if (!config.demoMode) errors.push('whatsappNumber is empty, but demoMode is false: a real shop needs its WhatsApp number, or orders go nowhere.');
-    } else if (!/^\d+$/.test(number)) {
-      errors.push(`whatsappNumber "${number}" must be digits only: no +, spaces or dashes (e.g. 60123456789).`);
-    } else if (number.startsWith('0')) {
-      errors.push(`whatsappNumber "${number}" starts with 0: start with the country code instead (Malaysia: 60, so 012… becomes 6012…).`);
-    } else if (number.length < 8 || number.length > 15) {
-      errors.push(`whatsappNumber "${number}" has ${number.length} digits; a phone number with country code has 8 to 15.`);
+  // The number is only required for the WhatsApp channel, but a number that is filled in is always
+  // checked, so a config with a channel typo and a bad number shows both problems in one build.
+  const number = config.whatsappNumber;
+  if (!number) {
+    if (config.orderChannel === 'whatsapp' && !config.demoMode) {
+      errors.push('whatsappNumber is empty, but demoMode is false: a real shop needs its WhatsApp number, or orders go nowhere.');
     }
+  } else if (!/^\d+$/.test(number)) {
+    errors.push(`whatsappNumber "${number}" must be digits only: no +, spaces or dashes (e.g. 60123456789).`);
+  } else if (number.startsWith('0')) {
+    errors.push(`whatsappNumber "${number}" starts with 0: start with the country code instead (Malaysia: 60, so 012… becomes 6012…).`);
+  } else if (number.length < 8 || number.length > 15) {
+    errors.push(`whatsappNumber "${number}" has ${number.length} digits; a phone number with country code has 8 to 15.`);
   }
 
   // --- Tables and tax ---

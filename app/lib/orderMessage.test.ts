@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { CartLine } from './cart';
 import { shopConfig } from '../data/shop';
 import { buildOrderMessage, whatsappLink } from './orderMessage';
-import { buildOrder } from './sendOrder';
+import { buildOrder } from './order';
 import { calculateTotals, priceCart } from './pricing';
 
 // The same order as the browser check: noodles with a note, 2 sodas, iced rice tea.

@@ -6,7 +6,8 @@ import { cartStore, changeLineQuantity, parseTable, removeLine, saveLine, type C
 import { getCopy, type Copy } from './lib/copy';
 import { calculateTotals, formatMoney, priceCart } from './lib/pricing';
 import { buildOrderMessage } from './lib/orderMessage';
-import { buildOrder, sendOrder } from './lib/sendOrder';
+import { buildOrder } from './lib/order';
+import { sendOrder } from './lib/sendOrder';
 import { SiteHeader } from './components/SiteHeader';
 import { MenuBrowser } from './components/MenuBrowser';
 import { ItemSheet, type ItemChoice } from './components/ItemSheet';
@@ -56,6 +57,11 @@ export default function Home() {
     setOpenItem(null);
   };
   const editLine = (line: CartLine, item: MenuItem) => { setOpenItem({ item, editing: line }); setCartOpen(false); };
+  // If the order can't be sent (empty cart, no table), go back to the cart, which shows why.
+  const send = async () => {
+    const result = await sendOrder(order);
+    if (!result.ok) { setMessageOpen(false); setCartOpen(true); }
+  };
 
   return (
     <main className="site-shell">
@@ -113,7 +119,7 @@ export default function Home() {
           message={orderMessage}
           t={t}
           onClose={() => setMessageOpen(false)}
-          onSend={() => void sendOrder(order)}
+          onSend={() => void send()}
         />
       )}
     </main>

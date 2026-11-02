@@ -42,6 +42,12 @@ describe('checkShop', () => {
     ]);
   });
 
+  it('still checks the WhatsApp number when the channel has a typo, so both problems show at once', () => {
+    const errors = errorsFor({ orderChannel: 'whatsap' as ShopConfig['orderChannel'], whatsappNumber: '012-345 6789', demoMode: false });
+    expect(errors).toHaveLength(2);
+    expect(errors[1]).toMatch(/digits only/);
+  });
+
   it('needs every dish category to exist', () => {
     expect(errorsFor({}, [{ ...dish, category: 'desserts' }])).toContainEqual(expect.stringMatching(/category "desserts", which isn't in categories/));
   });
