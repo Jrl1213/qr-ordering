@@ -1,8 +1,7 @@
-import type { MenuItem } from '../data/menu';
-import { restaurantConfig } from '../data/config';
+import { shopConfig, type MenuItem } from '../data/shop';
 import { findItem, findOption, type CartLine, type MenuOption } from './cart';
 
-export const formatMoney = (value: number) => `${restaurantConfig.currencyLabel} ${value.toFixed(2)}`;
+export const formatMoney = (value: number) => `${shopConfig.currencyLabel} ${value.toFixed(2)}`;
 
 export const getUnitPrice = (item: MenuItem, option: MenuOption | undefined) => item.price + (option?.price ?? 0);
 
@@ -24,7 +23,7 @@ export type TaxSettings = { serviceTaxEnabled: boolean; serviceTaxRate: number }
 // taxRate is null when the shop has no service tax, so the tax line is hidden.
 export type Totals = { subtotal: number; tax: number; total: number; itemCount: number; taxRate: number | null };
 
-export function calculateTotals(entries: CartEntry[], settings: TaxSettings = restaurantConfig): Totals {
+export function calculateTotals(entries: CartEntry[], settings: TaxSettings = shopConfig): Totals {
   const subtotal = entries.reduce((sum, entry) => sum + entry.lineTotal, 0);
   const taxRate = settings.serviceTaxEnabled ? settings.serviceTaxRate : null;
   const tax = taxRate === null ? 0 : subtotal * taxRate;

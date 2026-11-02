@@ -1,6 +1,6 @@
-import type { Language } from '../data/config';
-import type { MenuItem } from '../data/menu';
-import { categoryLabel, type Copy } from '../lib/copy';
+import type { Language, MenuItem } from '../data/shop';
+import type { Copy } from '../lib/copy';
+import { categoryLabel } from '../lib/menuFilter';
 import { formatMoney } from '../lib/pricing';
 
 type Props = { item: MenuItem; t: Copy; language: Language; onAdd: (item: MenuItem) => void };
@@ -10,7 +10,7 @@ export function MenuCard({ item, t, language, onAdd }: Props) {
     <article className={`menu-card ${!item.available ? 'is-unavailable' : ''}`}>
       <div className={`dish-photo tone-${item.imageTone}`} role="img" aria-label={`Safe photo placeholder for ${item.name[language]}`}>
         <span className="food-emoji">{item.imageEmoji}</span>
-        <small>{item.popular ? t.popular : categoryLabel(t, item.category)}</small>
+        <small>{item.popular ? t.popular : categoryLabel(t, language, item.category)}</small>
       </div>
       <div className="dish-copy">
         <div>

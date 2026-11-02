@@ -11,27 +11,35 @@ A fictional, mobile-first student portfolio project for demonstrating table-side
 
 The ordering page reads the table number from `?table=1`. If it is missing, the customer sees a clear warning and cannot continue to WhatsApp.
 
-## The three files beginners usually edit
+## The files beginners usually edit
 
-- `app/data/menu.ts` — dish names in English, Chinese and Malay; descriptions; prices; categories; availability; spice levels; choices; and safe photo placeholders.
-- `app/data/config.ts` — restaurant name, service-tax rate, currency, WhatsApp number, local-cart storage key and site address. The WhatsApp number is empty in the demo and must be set before any real use.
+Each shop has its own folder in `shops/`. The demo shop is `shops/jade-noodle-house/`.
+
+- `shops/jade-noodle-house/menu.ts` — dish names in English, Chinese and Malay; descriptions; prices; categories; availability; spice levels; choices; and safe photo placeholders.
+- `shops/jade-noodle-house/config.ts` — everything else about the shop: name, logo letter, page title, languages offered, menu tabs, hero text, service tax, currency, WhatsApp number, number of tables, QR colour, site address and demo mode. `shops/types.ts` explains every setting.
 - `app/globals.css` — site colours are at the very top under `:root`.
+
+`app/data/shop.ts` picks which shop folder the site is built from.
+
+## Demo mode
+
+`demoMode: true` (the demo shop) shows "demo only" notes, the `?table=1` hint and a link to the staff QR page in the footer. Set it to `false` for a real shop: those disappear and the wording is for real customers. The WhatsApp number must be set before turning demo mode off.
 
 ## Change a price or availability
 
-Open `app/data/menu.ts`, find the item and change `price: 16.90`. Use `available: false` to show it as sold out. Keep prices as numbers without `RM`.
+Open the shop's `menu.ts`, find the item and change `price: 16.90`. Use `available: false` to show it as sold out. Keep prices as numbers without `RM`.
 
 ## Change service tax
 
-Open `app/data/config.ts`. Set `serviceTaxEnabled` to `true` or `false`, and set `serviceTaxRate` as a decimal: `0.06` means 6%.
+Open the shop's `config.ts`. Set `serviceTaxEnabled` to `true` or `false`, and set `serviceTaxRate` as a decimal: `0.06` means 6%.
 
 ## Change the WhatsApp destination
 
-Open `app/data/config.ts` and set `whatsappNumber` to the shop's number. Use international digits only (country code first), with no `+`, spaces or dashes. The demo leaves it empty, so WhatsApp asks the customer to choose a chat instead of messaging a made-up number. Always send a test order before showing the site to a restaurant.
+Open the shop's `config.ts` and set `whatsappNumber` to the shop's number. Use international digits only (country code first), with no `+`, spaces or dashes. The demo leaves it empty, so WhatsApp asks the customer to choose a chat instead of messaging a made-up number. Always send a test order before showing the site to a restaurant.
 
 ## Generate table QR cards
 
-Open `/qr`, choose 1–20 tables and press **Print cards**. The cards automatically use the current site address, so published cards point to the published site and local test cards point to localhost.
+Open `/qr`, choose how many tables (up to the shop's `maxTables`) and press **Print cards**. The cards automatically use the current site address, so published cards point to the published site and local test cards point to localhost.
 
 ## Test the unfinished-cart feature
 
@@ -39,7 +47,7 @@ Open `/?table=1`, add an item, then refresh. The cart remains on that device usi
 
 ## Validation
 
-Run `npm test`, `npm run lint` and `npm run build`. The tests check prices, totals, the WhatsApp message, the cart and the menu search (files ending in `.test.ts`). The build makes a plain static website in the `out/` folder. There is no server code, so any static host can serve it.
+Run `npm test`, `npm run lint` and `npm run build`. The tests check prices, totals, the WhatsApp message, the cart, the menu tabs and search, and the demo wording (files ending in `.test.ts`). The build makes a plain static website in the `out/` folder. There is no server code, so any static host can serve it.
 
 ## Publish on Netlify
 
@@ -47,5 +55,5 @@ Run `npm test`, `npm run lint` and `npm run build`. The tests check prices, tota
 
 1. In Netlify, choose **Add new project → Import an existing project** and pick this GitHub repo.
 2. Keep the settings it reads from `netlify.toml` and deploy.
-3. Optional: put the final address in `siteUrl` in `app/data/config.ts` (used for link previews). If it is empty, the address Netlify gives the build is used.
+3. Optional: put the final address in `siteUrl` in the shop's `config.ts` (used for link previews). If it is empty, the address Netlify gives the build is used.
 4. Open `/qr` on the live site to print cards that point to the live address.

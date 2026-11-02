@@ -1,5 +1,4 @@
-import { menuItems, type MenuItem } from '../data/menu';
-import { restaurantConfig } from '../data/config';
+import { menuItems, shopConfig, type MenuItem } from '../data/shop';
 
 export type CartLine = {
   key: string;
@@ -80,7 +79,7 @@ export function parseTable(search: string): string | null {
   const value = new URLSearchParams(search).get('table');
   if (!value || !/^\d{1,3}$/.test(value)) return null;
   const table = Number(value);
-  return table >= 1 && table <= restaurantConfig.maxTables ? String(table) : null;
+  return table >= 1 && table <= shopConfig.maxTables ? String(table) : null;
 }
 
 // A tiny store so React reads the saved cart with useSyncExternalStore
@@ -92,7 +91,7 @@ const listeners = new Set<() => void>();
 function readCart(): CartLine[] {
   if (cartCache === null) {
     try {
-      cartCache = parseSavedCart(localStorage.getItem(restaurantConfig.cartStorageKey));
+      cartCache = parseSavedCart(localStorage.getItem(shopConfig.cartStorageKey));
     } catch {
       cartCache = [];
     }
@@ -110,7 +109,7 @@ export const cartStore = {
   update(change: (current: CartLine[]) => CartLine[]) {
     cartCache = change(readCart());
     try {
-      localStorage.setItem(restaurantConfig.cartStorageKey, JSON.stringify(cartCache));
+      localStorage.setItem(shopConfig.cartStorageKey, JSON.stringify(cartCache));
     } catch { /* Storage can be full or blocked; the cart still works for this visit. */ }
     listeners.forEach((listener) => listener());
   },

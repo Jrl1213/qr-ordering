@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import type { Language } from '../data/config';
-import type { MenuItem } from '../data/menu';
+import type { Language, MenuItem } from '../data/shop';
 import { findOption, MAX_NOTE_LENGTH, MAX_QUANTITY, type CartLine } from '../lib/cart';
 import { spiceLabels, type Copy } from '../lib/copy';
 import { formatMoney, getUnitPrice } from '../lib/pricing';
