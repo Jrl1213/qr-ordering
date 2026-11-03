@@ -34,7 +34,8 @@ export function shopClock(date: Date, timeZone: string): { day: Weekday; minutes
 }
 
 // A day's periods with their times in minutes, earliest first. Badly written ones are skipped (the checker reports them).
-function periodsInMinutes(periods: OpeningPeriod[] | undefined) {
+// Used for both open/closed and the hours list, so the two always agree.
+export function sortedPeriods(periods: OpeningPeriod[] | undefined) {
   return (periods ?? [])
     .map((period) => ({ ...period, from: toMinutes(period.open), to: toMinutes(period.close) }))
     .filter((period): period is OpeningPeriod & { from: number; to: number } => period.from !== null && period.to !== null && period.from < MIDNIGHT)
@@ -63,12 +64,24 @@ export function shopStatus(config: ShopConfig, date: Date | null): ShopStatus | 
   // Up to 7 days ahead, so a shop open one day a week still finds next week's time.
   for (let daysAhead = 0; daysAhead <= 7; daysAhead++) {
     const weekday = WEEKDAYS[(today + daysAhead) % 7];
-    for (const period of periodsInMinutes(config.openingHours[weekday])) {
-      if (daysAhead === 0 && period.from <= minutes && minutes < period.to) return { open: true, closesAt: period.close };
+    for (const period of sortedPeriods(config.openingHours[weekday])) {
+      if (daysAhead === 0 && period.from <= minutes && minutes < period.to) return { open: true, closesAt: closingTime(config, today, period) };
       if (daysAhead > 0 || period.from > minutes) return { open: false, reason: 'hours', next: { day: weekday, daysAhead, time: period.open } };
     }
   }
   return { open: false, reason: 'hours', next: null };
+}
+
+// When a period runs to "24:00" and the next day starts at "00:00" (hours past midnight, split over two days),
+// the shop really closes at the end of the next day's period. null if it never closes (open 24/7).
+function closingTime(config: ShopConfig, dayIndex: number, period: { close: string; to: number }): string | null {
+  let current = period;
+  for (let daysAhead = 1; daysAhead <= 7 && current.to === MIDNIGHT; daysAhead++) {
+    const first = sortedPeriods(config.openingHours?.[WEEKDAYS[(dayIndex + daysAhead) % 7]])[0];
+    if (!first || first.from !== 0) return current.close;
+    current = first;
+  }
+  return current.to === MIDNIGHT ? null : current.close;
 }
 
 // The periods of one day, checked for the config checker: each problem is one sentence.
