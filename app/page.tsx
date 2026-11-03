@@ -112,7 +112,7 @@ export default function Home() {
       <MenuBrowser t={t} language={language} canOrder={canOrder} onAdd={(item) => setOpenItem({ item, editing: null })} />
 
       {/* The staff QR page is only linked in demo mode, so a real shop's customers don't see it. */}
-      <footer><p>{t.privacy}</p>{shopConfig.demoMode && <a href="/qr" rel="nofollow">{t.qrManager} →</a>}</footer>
+      <footer><p>{t.privacy}</p>{shopConfig.demoMode && <><a href="/how-it-works" rel="nofollow">{t.howItWorks} →</a><a href="/qr" rel="nofollow">{t.qrManager} →</a></>}</footer>
 
       {/* While closed, the cart bar and pop-ups are hidden; the saved cart is kept for later. */}
       {canOrder && <button className="cart-bar" type="button" onClick={() => setCartOpen(true)} aria-label={`${t.cart}: ${totals.itemCount} ${t.items}, ${formatMoney(totals.total)}`}>
