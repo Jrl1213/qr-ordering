@@ -16,6 +16,14 @@ export type OrderChannel = (typeof ORDER_CHANNELS)[number];
 
 export type MenuCategory = { id: string; label: LocalText };
 
+// Opening hours: for each day, the times the shop takes orders, in 24-hour "HH:MM" at the shop.
+export const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
+export type Weekday = (typeof WEEKDAYS)[number];
+// close may be "24:00" (midnight). For hours past midnight, split them over two days.
+export type OpeningPeriod = { open: string; close: string };
+// [] means closed all day. Two periods make a break, e.g. [{ open: '08:00', close: '14:00' }, { open: '17:00', close: '21:00' }].
+export type OpeningHours = Record<Weekday, OpeningPeriod[]>;
+
 export type ShopConfig = {
   // Demo mode shows "demo only" notes, the ?table=1 hint and the staff QR link in the footer.
   // Set it to false for a real shop.
@@ -42,7 +50,19 @@ export type ShopConfig = {
   languages: Language[];
 
   hero: { heading: LocalText; intro: LocalText };
-  // Leave false/null to hide. (There are no real opening hours yet.)
+  // Orders can only be sent while the shop is open. Outside these hours the menu can still be read, but
+  // the add buttons and cart are hidden and the hours are shown. null = no fixed hours, always open.
+  openingHours: OpeningHours | null;
+  // The shop's time zone, so the hours are right even if a phone is set to another one. Malaysia: 'Asia/Kuala_Lumpur'.
+  timeZone: string;
+  // The "shop is closed" switch: true stops all orders, whatever the hours (a holiday, a busy day). It is
+  // part of the site, so changing it needs a new build.
+  temporarilyClosed: boolean;
+  // Shown while temporarilyClosed is true, e.g. "Closed for Hari Raya, back on 2 April". null for the standard text.
+  closedNotice: LocalText | null;
+
+  // "Open now" in the header (or "Closed now"), with the closing time when openingHours is set.
+  // Leave false/null to hide.
   showOpenNow: boolean;
   waitTime: LocalText | null;
   searchHint: LocalText;

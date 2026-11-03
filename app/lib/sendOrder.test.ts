@@ -55,6 +55,18 @@ describe('sendOrder', () => {
     expect(opened).toHaveLength(1);
   });
 
+  it('refuses while the shop is closed, by the switch or by the hours', async () => {
+    const { opened, openUrl } = recorder();
+    const switchedOff: ShopConfig = { ...shopConfig, temporarilyClosed: true };
+    expect(await sendOrder(order, switchedOff, openUrl)).toEqual({ ok: false, reason: 'closed' });
+    const week = { mon: [], tue: [{ open: '08:00', close: '17:00' }], wed: [], thu: [], fri: [], sat: [], sun: [] };
+    const withHours: ShopConfig = { ...shopConfig, openingHours: week, timeZone: 'Asia/Kuala_Lumpur' };
+    // Tuesday 3 Nov 2026 in Malaysia: one minute before closing, then at closing time.
+    expect(await sendOrder(order, withHours, openUrl, new Date('2026-11-03T16:59:00+08:00'))).toEqual({ ok: true });
+    expect(await sendOrder(order, withHours, openUrl, new Date('2026-11-03T17:00:00+08:00'))).toEqual({ ok: false, reason: 'closed' });
+    expect(opened).toHaveLength(1);
+  });
+
   it('refuses an empty cart', async () => {
     const { opened, openUrl } = recorder();
     const empty = buildOrder([], calculateTotals([]), 'en', '4');

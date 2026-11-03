@@ -9,11 +9,15 @@ import { calculateTotals, formatMoney, priceCart } from './lib/pricing';
 import { buildOrderMessage } from './lib/orderMessage';
 import { buildOrder } from './lib/order';
 import { sendOrder } from './lib/sendOrder';
+import { clockStore, minuteToDate } from './lib/clock';
+import { fill } from './lib/shopHours';
+import { shopStatus, type ShopStatus } from '../shops/openingHours';
 import { SiteHeader } from './components/SiteHeader';
 import { MenuBrowser } from './components/MenuBrowser';
 import { ItemSheet, type ItemChoice } from './components/ItemSheet';
 import { CartSheet } from './components/CartSheet';
 import { MessageSheet } from './components/MessageSheet';
+import { ClosedNotice } from './components/ClosedNotice';
 
 // The address bar never changes while the menu is open, so there is nothing to subscribe to.
 const subscribeToNothing = () => () => {};
@@ -21,13 +25,17 @@ const subscribeToNothing = () => () => {};
 // The dish panel that is open: a new dish, or a cart line being edited.
 type OpenItem = { item: MenuItem; editing: CartLine | null };
 
-// "Open now" and the wait time, each shown only if the shop sets it.
-function ServiceRow({ t, language }: { t: Copy; language: Language }) {
-  const parts = [shopConfig.showOpenNow ? t.open : null, shopConfig.waitTime?.[language] ?? null].filter((part) => part !== null);
+// "Open now" (with the closing time) or "Closed now", and the wait time, each shown only if the shop sets it.
+// status is null until the phone's clock is read, so nothing wrong is shown for a moment.
+function ServiceRow({ t, language, status }: { t: Copy; language: Language; status: ShopStatus | null }) {
+  const showStatus = shopConfig.showOpenNow && status !== null;
+  const openText = status?.open ? [t.open, status.closesAt ? fill(t.openUntil, { time: status.closesAt }) : null] : [t.closed];
+  const parts = [...(showStatus ? openText : []), status?.open !== false ? shopConfig.waitTime?.[language] ?? null : null]
+    .filter((part) => part !== null);
   if (!parts.length) return null;
   return (
     <div className="service-row">
-      {shopConfig.showOpenNow && <span className="open-dot" />}
+      {showStatus && <span className={status.open ? 'open-dot' : 'open-dot is-closed'} />}
       {parts.map((part, index) => <Fragment key={index}>{index > 0 && <> <span>·</span></>} {part}</Fragment>)}
     </div>
   );
@@ -40,6 +48,12 @@ export default function Home() {
   const [cartOpen, setCartOpen] = useState(false);
   const [messageOpen, setMessageOpen] = useState(false);
   const t = getCopy(language);
+
+  // Open or closed, checked again every few seconds. Until the clock is known (status null), ordering shows.
+  const minute = useSyncExternalStore(clockStore.subscribe, clockStore.getSnapshot, clockStore.getServerSnapshot);
+  const now = minuteToDate(minute);
+  const status = useMemo(() => shopStatus(shopConfig, minuteToDate(minute)), [minute]);
+  const canOrder = status?.open !== false;
 
   // Screen readers and the browser's translate offer read <html lang>; the build sets the shop's first language.
   useEffect(() => { document.documentElement.lang = language; }, [language]);
@@ -63,9 +77,10 @@ export default function Home() {
   };
   const editLine = (line: CartLine, item: MenuItem) => { setOpenItem({ item, editing: line }); setCartOpen(false); };
   // If the order can't be sent (empty cart, no table), go back to the cart, which shows why.
+  // If the shop has just closed, close the pop-ups: the page then shows the closed notice.
   const send = async () => {
     const result = await sendOrder(order);
-    if (!result.ok) { setMessageOpen(false); setCartOpen(true); }
+    if (!result.ok) { setMessageOpen(false); setCartOpen(result.reason !== 'closed'); }
   };
 
   return (
@@ -78,21 +93,25 @@ export default function Home() {
         <p className="eyebrow">{table ? `${t.table.toLocaleUpperCase()} ${table} · ` : ''}{t.dineIn.toLocaleUpperCase()}</p>
         <h1>{shopConfig.hero.heading[language]}</h1>
         <p>{shopConfig.hero.intro[language]}</p>
-        <ServiceRow t={t} language={language} />
+        <ServiceRow t={t} language={language} status={status} />
       </section>
 
-      <MenuBrowser t={t} language={language} onAdd={(item) => setOpenItem({ item, editing: null })} />
+      {status && !status.open && <ClosedNotice t={t} language={language} status={status} now={now} />}
+
+      <MenuBrowser t={t} language={language} canOrder={canOrder} onAdd={(item) => setOpenItem({ item, editing: null })} />
 
       {/* The staff QR page is only linked in demo mode, so a real shop's customers don't see it. */}
       <footer><p>{t.privacy}</p>{shopConfig.demoMode && <a href="/qr" rel="nofollow">{t.qrManager} →</a>}</footer>
 
-      <button className="cart-bar" type="button" onClick={() => setCartOpen(true)} aria-label={`${t.cart}: ${totals.itemCount} ${t.items}, ${formatMoney(totals.total)}`}>
+      {/* While closed, the cart bar and pop-ups are hidden; the saved cart is kept for later. */}
+      {canOrder && <button className="cart-bar" type="button" onClick={() => setCartOpen(true)} aria-label={`${t.cart}: ${totals.itemCount} ${t.items}, ${formatMoney(totals.total)}`}>
         <span><small>{t.yourOrder.toLocaleUpperCase()}</small>{totals.itemCount ? `${totals.itemCount} ${t.items}` : t.empty}</span>
         <strong>{totals.itemCount ? formatMoney(totals.total) : t.cart} →</strong>
-      </button>
-      {shopConfig.demoMode && <p className="demo-note">{t.demo}</p>}
+      </button>}
+      {/* Pinned under the cart bar; at the end of the page while the cart bar is hidden. */}
+      {shopConfig.demoMode && <p className={canOrder ? 'demo-note' : 'demo-note is-static'}>{t.demo}</p>}
 
-      {openItem && (
+      {canOrder && openItem && (
         <ItemSheet
           key={openItem.editing?.key ?? openItem.item.id}
           item={openItem.item}
@@ -104,7 +123,7 @@ export default function Home() {
         />
       )}
 
-      {cartOpen && (
+      {canOrder && cartOpen && (
         <CartSheet
           entries={entries}
           totals={totals}
@@ -119,7 +138,7 @@ export default function Home() {
         />
       )}
 
-      {messageOpen && (
+      {canOrder && messageOpen && (
         <MessageSheet
           message={orderMessage}
           t={t}

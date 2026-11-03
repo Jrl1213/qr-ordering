@@ -29,6 +29,20 @@ export const shopConfig: ShopConfig = {
       ms: 'Espreso, kek segar dan hidangan sarapan ringkas, disediakan selepas dipesan.',
     },
   },
+  // Sample hours: closed on Mondays, longer on weekends. Outside them the menu can be read but not ordered from.
+  openingHours: {
+    mon: [],
+    tue: [{ open: '08:00', close: '17:00' }],
+    wed: [{ open: '08:00', close: '17:00' }],
+    thu: [{ open: '08:00', close: '17:00' }],
+    fri: [{ open: '08:00', close: '17:00' }],
+    sat: [{ open: '09:00', close: '18:00' }],
+    sun: [{ open: '09:00', close: '18:00' }],
+  },
+  timeZone: 'Asia/Kuala_Lumpur',
+  // The "shop is closed" switch, e.g. for a holiday. closedNotice can say why and when it reopens.
+  temporarilyClosed: false,
+  closedNotice: null,
   showOpenNow: true,
   waitTime: null,
   searchHint: { en: 'Search coffee, toast, cakes…', zh: '', ms: 'Cari kopi, roti bakar, kek…' },

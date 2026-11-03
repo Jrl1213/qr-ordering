@@ -25,6 +25,11 @@ export const shopConfig: ShopConfig = {
       ms: 'Mi tarik, sate panas dan hidangan nasi yang menenangkan—disediakan segar selepas dipesan.',
     },
   },
+  // No fixed hours: the demo is always open, so it works whenever someone looks at it.
+  openingHours: null,
+  timeZone: 'Asia/Kuala_Lumpur',
+  temporarilyClosed: false,
+  closedNotice: null,
   showOpenNow: true,
   waitTime: { en: '15–20 min', zh: '15–20 分鐘', ms: '15–20 min' },
   searchHint: { en: 'Search noodles, rice, drinks…', zh: '搜尋麵、飯、飲料…', ms: 'Cari mi, nasi, minuman…' },

@@ -1,6 +1,7 @@
 import { contrastRatio, luminance, parseHex } from './colors';
+import { checkOpeningDay, isTimeZone } from './openingHours';
 import { brandTextPairs, themeColors } from './theme';
-import { ORDER_CHANNELS, POPULAR, type Language, type LocalText, type MenuItem, type ShopConfig } from './types';
+import { ORDER_CHANNELS, POPULAR, WEEKDAYS, type Language, type LocalText, type MenuItem, type ShopConfig } from './types';
 
 // Checks a shop's config and menu for mistakes TypeScript can't catch (empty text, a dish in a
 // missing category, a brand colour too light to scan...). Each problem is one plain-English sentence.
@@ -59,6 +60,21 @@ export function checkShop(config: ShopConfig, menu: MenuItem[]): ShopProblems {
   needText(config.hero?.intro, 'The hero intro (hero.intro)');
   needText(config.searchHint, 'The search hint (searchHint)');
   if (config.waitTime) needText(config.waitTime, 'The wait time (waitTime)');
+
+  // --- Opening hours and the closed switch ---
+  if (!isTimeZone(config.timeZone)) {
+    errors.push(`timeZone "${config.timeZone}" isn't a time zone browsers know; for Malaysia use 'Asia/Kuala_Lumpur'.`);
+  }
+  if (config.openingHours) {
+    for (const day of WEEKDAYS) errors.push(...checkOpeningDay(day, config.openingHours[day]));
+    if (WEEKDAYS.every((day) => !config.openingHours?.[day]?.length)) {
+      warnings.push('openingHours has no open times on any day, so the shop always shows as closed. Use null for a shop without fixed hours.');
+    }
+  }
+  if (config.closedNotice) needText(config.closedNotice, 'The closed notice (closedNotice)');
+  if (config.temporarilyClosed) {
+    warnings.push('temporarilyClosed is true: the menu shows as closed and no orders can be sent until it is false again and the site is rebuilt.');
+  }
 
   // --- How orders are sent ---
   if (!(ORDER_CHANNELS as readonly string[]).includes(config.orderChannel)) {
