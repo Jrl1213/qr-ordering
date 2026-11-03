@@ -91,7 +91,12 @@ Orders go out through the shop's `orderChannel`; today the only choice is `'what
 
 ## Generate table QR cards
 
-Open `/qr`, choose how many tables (up to the shop's `maxTables`) and press **Print cards**. The cards automatically use the current site address, so published cards point to the published site and local test cards point to localhost.
+Open `/qr`, choose how many tables (up to the shop's `maxTables`) and how many cards per A4 page, then press **Print**. The cards automatically use the current site address, so published cards point to the published site and local test cards point to localhost.
+
+- **4 per page:** A6 cards (105 × 148 mm) with a 60 mm code, sized for A6 table stands.
+- **8 per page:** 105 × 74 mm cards with a 46 mm code, for stickers.
+
+The page shows each A4 sheet as it will print. In the print window choose A4, scale 100% (not "fit to page") and the default margins, then cut along the dashed lines. The words "Table" and "Scan to order" appear in every language the shop offers. A long shop name stops at two lines ("…") on the cards. The zero page margin only applies to `/qr`, so printing other pages keeps normal margins. Scan one printed card with a real phone before printing them all.
 
 ## Test the unfinished-cart feature
 
