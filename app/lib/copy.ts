@@ -1,4 +1,4 @@
-import { shopConfig, type Language } from '../data/shop';
+import { shopConfig, type Language, type Weekday } from '../data/shop';
 
 // The app's own text in each language (the same for every shop).
 // A shop's own text (name, hero, categories…) is in its config in shops/.
@@ -10,6 +10,9 @@ const en = {
   yourOrder: 'Your order', empty: 'Your cart is empty', emptyBody: 'Add a dish to start your table order.', cart: 'View cart', edit: 'Edit', remove: 'Remove', subtotal: 'Subtotal', serviceTax: 'Service tax', total: 'Total', continue: 'Continue browsing', preview: 'Preview order message',
   previewTitle: 'Check your WhatsApp message', previewBody: 'This is the exact message that will open in WhatsApp. Send it there to place your order.', sendsTo: 'Sends to', noNumber: 'Demo: no shop number is set, so WhatsApp will ask you to choose a chat.', openWhatsapp: 'Open WhatsApp', close: 'Close',
   demo: 'Demo only — orders are not actually submitted', privacy: 'No names, phone numbers or payment details are collected.', noResults: 'No dishes match your search.', clear: 'Clear search', qrManager: 'Staff QR cards',
+  closed: 'Closed now', openUntil: 'until {time}', closedTitle: "We're closed right now", pausedBody: "We're not taking orders at the moment.",
+  opensAt: 'We open again {day} at {time}.', browseOnly: 'You can still look through the menu.', hoursTitle: 'Opening hours', closedDay: 'Closed', today: 'today', tomorrow: 'tomorrow',
+  days: { mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', fri: 'Friday', sat: 'Saturday', sun: 'Sunday' } as Record<Weekday, string>,
 };
 
 export type Copy = typeof en;
@@ -24,6 +27,9 @@ export const copy: Record<Language, Copy> = {
     yourOrder: '您的訂單', empty: '購物車是空的', emptyBody: '加入一道餐點開始點餐。', cart: '查看購物車', edit: '編輯', remove: '移除', subtotal: '小計', serviceTax: '服務稅', total: '總計', continue: '繼續選購', preview: '預覽訂單訊息',
     previewTitle: '檢查 WhatsApp 訊息', previewBody: '以下訊息將在 WhatsApp 中開啟。在 WhatsApp 發送即完成點餐。', sendsTo: '發送至', noNumber: '示範：未設定店家號碼，WhatsApp 會請您自行選擇聊天對象。', openWhatsapp: '開啟 WhatsApp', close: '關閉',
     demo: '僅供示範 — 訂單不會實際提交', privacy: '不會收集姓名、電話或付款資料。', noResults: '找不到符合的餐點。', clear: '清除搜尋', qrManager: '員工 QR 卡',
+    closed: '休息中', openUntil: '營業至 {time}', closedTitle: '本店目前休息中', pausedBody: '目前暫停接單。',
+    opensAt: '{day} {time} 恢復營業。', browseOnly: '您仍可瀏覽菜單。', hoursTitle: '營業時間', closedDay: '休息', today: '今天', tomorrow: '明天',
+    days: { mon: '星期一', tue: '星期二', wed: '星期三', thu: '星期四', fri: '星期五', sat: '星期六', sun: '星期日' },
   },
   ms: {
     table: 'Meja', dineIn: 'Makan sini', open: 'Dibuka',
@@ -33,6 +39,9 @@ export const copy: Record<Language, Copy> = {
     yourOrder: 'Pesanan anda', empty: 'Troli anda kosong', emptyBody: 'Tambah hidangan untuk mula memesan.', cart: 'Lihat troli', edit: 'Edit', remove: 'Buang', subtotal: 'Jumlah kecil', serviceTax: 'Cukai perkhidmatan', total: 'Jumlah', continue: 'Teruskan memilih', preview: 'Pratonton mesej pesanan',
     previewTitle: 'Semak mesej WhatsApp', previewBody: 'Inilah mesej yang akan dibuka dalam WhatsApp. Hantar di sana untuk membuat pesanan.', sendsTo: 'Dihantar ke', noNumber: 'Demo: tiada nombor kedai, jadi WhatsApp akan minta anda pilih sembang.', openWhatsapp: 'Buka WhatsApp', close: 'Tutup',
     demo: 'Demo sahaja — pesanan tidak dihantar', privacy: 'Nama, nombor telefon dan butiran pembayaran tidak dikumpul.', noResults: 'Tiada hidangan sepadan.', clear: 'Kosongkan carian', qrManager: 'Kad QR staf',
+    closed: 'Tutup sekarang', openUntil: 'hingga {time}', closedTitle: 'Kami sedang tutup', pausedBody: 'Kami tidak menerima pesanan buat masa ini.',
+    opensAt: 'Kami buka semula {day}, jam {time}.', browseOnly: 'Anda masih boleh melihat menu.', hoursTitle: 'Waktu operasi', closedDay: 'Tutup', today: 'hari ini', tomorrow: 'esok',
+    days: { mon: 'Isnin', tue: 'Selasa', wed: 'Rabu', thu: 'Khamis', fri: 'Jumaat', sat: 'Sabtu', sun: 'Ahad' },
   },
 };
 

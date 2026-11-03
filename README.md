@@ -39,6 +39,26 @@ Each shop has its own folder in `shops/`. There are two made-up sample shops:
 
 `demoMode: true` (the demo shop) shows "demo only" notes, the `?table=1` hint and a link to the staff QR page in the footer. Set it to `false` for a real shop: those disappear and the wording is for real customers. The WhatsApp number must be set before turning demo mode off.
 
+## Opening hours and the "shop is closed" switch
+
+Outside opening hours, customers can still read the menu, but the add buttons and the cart are hidden, and the page shows when the shop opens again and the week's hours. In the shop's `config.ts`:
+
+```ts
+openingHours: {
+  mon: [],                                       // closed all day
+  tue: [{ open: '08:00', close: '14:00' }, { open: '17:00', close: '21:00' }], // with a break
+  // ...one line for every day, wed to sun
+},
+timeZone: 'Asia/Kuala_Lumpur',
+temporarilyClosed: false,  // true = closed now, whatever the hours (a holiday, a busy day)
+closedNotice: null,        // or text in each language, e.g. "Closed for Hari Raya, back on 2 April"
+```
+
+- Times are 24-hour `"HH:MM"` at the shop. `"24:00"` means midnight. For hours past midnight, split them over two days.
+- `openingHours: null` means no fixed hours: always open (the demo shop uses this).
+- The time comes from the customer's phone, so a phone with a wrong clock can see the wrong status. Orders still reach the shop by WhatsApp, so staff can always say no.
+- `temporarilyClosed` is part of the site: changing it needs a new build and release.
+
 ## Change a price or availability
 
 Open the shop's `menu.ts`, find the item and change `price: 16.90`. Use `available: false` to show it as sold out. Keep prices as numbers without `RM`.

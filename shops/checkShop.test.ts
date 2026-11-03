@@ -9,6 +9,8 @@ const dish: MenuItem = {
   price: 10, available: true, imageEmoji: '🍜', imageTone: 'jade',
 };
 
+const closedWeek = { mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] };
+
 // Checks a changed copy of the demo shop and returns its errors.
 const errorsFor = (config: Partial<ShopConfig> = {}, menu: MenuItem[] = [dish]) =>
   checkShop({ ...shopConfig, ...config }, menu).errors;
@@ -46,6 +48,19 @@ describe('checkShop', () => {
     const errors = errorsFor({ orderChannel: 'whatsap' as ShopConfig['orderChannel'], whatsappNumber: '012-345 6789', demoMode: false });
     expect(errors).toHaveLength(2);
     expect(errors[1]).toMatch(/digits only/);
+  });
+
+  it('checks opening hours, the time zone and the closed notice', () => {
+    expect(errorsFor({ openingHours: { ...closedWeek, fri: [{ open: '18:00', close: '02:00' }] } })[0]).toMatch(/^openingHours\.fri .*split them/);
+    expect(errorsFor({ openingHours: { ...closedWeek, mon: [{ open: '08:00', close: '17:00' }] } })).toEqual([]);
+    expect(errorsFor({ timeZone: 'Malaysia' })[0]).toMatch(/timeZone "Malaysia"/);
+    expect(errorsFor({ closedNotice: { en: 'JRL closed for a holiday', zh: '', ms: '' } })[0]).toMatch(/closedNotice\) has no text for zh, ms/);
+  });
+
+  it('warns when the shop can never take orders', () => {
+    const warningsFor = (config: Partial<ShopConfig>) => checkShop({ ...shopConfig, ...config }, [dish]).warnings;
+    expect(warningsFor({ openingHours: closedWeek })).toContainEqual(expect.stringMatching(/always shows as closed/));
+    expect(warningsFor({ temporarilyClosed: true })).toContainEqual(expect.stringMatching(/temporarilyClosed is true/));
   });
 
   it('needs every dish category to exist', () => {

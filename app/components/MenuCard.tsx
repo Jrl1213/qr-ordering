@@ -3,9 +3,10 @@ import type { Copy } from '../lib/copy';
 import { categoryLabel } from '../lib/menuFilter';
 import { formatMoney } from '../lib/pricing';
 
-type Props = { item: MenuItem; t: Copy; language: Language; onAdd: (item: MenuItem) => void };
+// canOrder is false while the shop is closed: the price still shows, the add button doesn't.
+type Props = { item: MenuItem; t: Copy; language: Language; canOrder: boolean; onAdd: (item: MenuItem) => void };
 
-export function MenuCard({ item, t, language, onAdd }: Props) {
+export function MenuCard({ item, t, language, canOrder, onAdd }: Props) {
   return (
     <article className={`menu-card ${!item.available ? 'is-unavailable' : ''}`}>
       <div className={`dish-photo tone-${item.imageTone}`} role="img" aria-label={`Safe photo placeholder for ${item.name[language]}`}>
@@ -22,7 +23,7 @@ export function MenuCard({ item, t, language, onAdd }: Props) {
         </div>
         <div className="dish-footer">
           <strong>{formatMoney(item.price)}</strong>
-          <button type="button" onClick={() => onAdd(item)} disabled={!item.available} aria-label={`${t.add} ${item.name[language]}`}>{item.available ? '＋' : '×'}</button>
+          {canOrder && <button type="button" onClick={() => onAdd(item)} disabled={!item.available} aria-label={`${t.add} ${item.name[language]}`}>{item.available ? '＋' : '×'}</button>}
         </div>
       </div>
     </article>

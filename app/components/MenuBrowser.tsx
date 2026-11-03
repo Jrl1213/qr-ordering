@@ -4,10 +4,10 @@ import type { Copy } from '../lib/copy';
 import { categoryLabel, filterMenu, menuTabs } from '../lib/menuFilter';
 import { MenuCard } from './MenuCard';
 
-type Props = { t: Copy; language: Language; onAdd: (item: MenuItem) => void };
+type Props = { t: Copy; language: Language; canOrder: boolean; onAdd: (item: MenuItem) => void };
 
 // Search box, category tabs and the list of dishes.
-export function MenuBrowser({ t, language, onAdd }: Props) {
+export function MenuBrowser({ t, language, canOrder, onAdd }: Props) {
   const tabs = menuTabs(t, language);
   const [category, setCategory] = useState(tabs[0].id);
   const [search, setSearch] = useState('');
@@ -34,7 +34,7 @@ export function MenuBrowser({ t, language, onAdd }: Props) {
         </div>
         {filteredItems.length ? (
           <div className="menu-grid">
-            {filteredItems.map((item) => <MenuCard key={item.id} item={item} t={t} language={language} onAdd={onAdd} />)}
+            {filteredItems.map((item) => <MenuCard key={item.id} item={item} t={t} language={language} canOrder={canOrder} onAdd={onAdd} />)}
           </div>
         ) : (
           <div className="empty-state">
