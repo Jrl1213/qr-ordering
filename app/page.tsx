@@ -10,7 +10,7 @@ import { buildOrderMessage } from './lib/orderMessage';
 import { buildOrder } from './lib/order';
 import { sendOrder } from './lib/sendOrder';
 import { clockStore, minuteToDate } from './lib/clock';
-import { fill } from './lib/shopHours';
+import { fill, timeText } from './lib/shopHours';
 import { shopStatus, type ShopStatus } from '../shops/openingHours';
 import { SiteHeader } from './components/SiteHeader';
 import { MenuBrowser } from './components/MenuBrowser';
@@ -22,6 +22,9 @@ import { ClosedNotice } from './components/ClosedNotice';
 // The address bar never changes while the menu is open, so there is nothing to subscribe to.
 const subscribeToNothing = () => () => {};
 
+// The clock is only watched when the shop has opening hours; otherwise open/closed never changes.
+const subscribeToClock = shopConfig.openingHours ? clockStore.subscribe : subscribeToNothing;
+
 // The dish panel that is open: a new dish, or a cart line being edited.
 type OpenItem = { item: MenuItem; editing: CartLine | null };
 
@@ -29,7 +32,7 @@ type OpenItem = { item: MenuItem; editing: CartLine | null };
 // status is null until the phone's clock is read, so nothing wrong is shown for a moment.
 function ServiceRow({ t, language, status }: { t: Copy; language: Language; status: ShopStatus | null }) {
   const showStatus = shopConfig.showOpenNow && status !== null;
-  const openText = status?.open ? [t.open, status.closesAt ? fill(t.openUntil, { time: status.closesAt }) : null] : [t.closed];
+  const openText = status?.open ? [t.open, status.closesAt ? fill(t.openUntil, { time: timeText(t, status.closesAt) }) : null] : [t.closed];
   const parts = [...(showStatus ? openText : []), status?.open !== false ? shopConfig.waitTime?.[language] ?? null : null]
     .filter((part) => part !== null);
   if (!parts.length) return null;
@@ -49,11 +52,19 @@ export default function Home() {
   const [messageOpen, setMessageOpen] = useState(false);
   const t = getCopy(language);
 
-  // Open or closed, checked again every few seconds. Until the clock is known (status null), ordering shows.
-  const minute = useSyncExternalStore(clockStore.subscribe, clockStore.getSnapshot, clockStore.getServerSnapshot);
-  const now = minuteToDate(minute);
-  const status = useMemo(() => shopStatus(shopConfig, minuteToDate(minute)), [minute]);
+  // Open or closed, checked every second. Until the clock is known (status null), ordering shows.
+  const minute = useSyncExternalStore(subscribeToClock, clockStore.getSnapshot, clockStore.getServerSnapshot);
+  const now = useMemo(() => minuteToDate(minute), [minute]);
+  const status = useMemo(() => shopStatus(shopConfig, now), [now]);
   const canOrder = status?.open !== false;
+
+  // When the shop closes, close every pop-up for good, so none comes back by itself when it opens again.
+  // (React's way to change state when a value changes, without an extra effect.)
+  const [couldOrder, setCouldOrder] = useState(canOrder);
+  if (couldOrder !== canOrder) {
+    setCouldOrder(canOrder);
+    if (!canOrder) { setOpenItem(null); setCartOpen(false); setMessageOpen(false); }
+  }
 
   // Screen readers and the browser's translate offer read <html lang>; the build sets the shop's first language.
   useEffect(() => { document.documentElement.lang = language; }, [language]);

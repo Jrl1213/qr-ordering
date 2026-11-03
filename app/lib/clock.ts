@@ -1,9 +1,10 @@
 // The current minute, for React's useSyncExternalStore. A whole minute (a number) is used so React
-// only redraws when it changes. It is checked every 10 seconds and when the customer comes back to
-// the tab, so the page switches to "closed" on time. null while the page is built (no clock yet).
+// only redraws when it changes. It is checked every second (cheap: a number compare) and when the
+// customer comes back to the tab, so the page and sendOrder agree on open/closed within a second.
+// null while the page is built (no clock yet).
 export const clockStore = {
   subscribe(listener: () => void) {
-    const timer = setInterval(listener, 10_000);
+    const timer = setInterval(listener, 1_000);
     document.addEventListener('visibilitychange', listener);
     return () => {
       clearInterval(timer);

@@ -49,6 +49,21 @@ describe('shopStatus', () => {
     expect(shopStatus(shop(), kl('2026-11-04T15:00'))).toMatchObject({ next: { day: 'tue', daysAhead: 6 } });
   });
 
+  it('gives the real closing time for hours split over midnight', () => {
+    const late: OpeningHours = { ...hours, fri: [{ open: '18:00', close: '24:00' }], sat: [{ open: '00:00', close: '02:00' }] };
+    // Friday 6 Nov 2026, 23:00: open until 02:00 on Saturday, not "24:00".
+    expect(shopStatus(shop({ openingHours: late }), kl('2026-11-06T23:00'))).toEqual({ open: true, closesAt: '02:00' });
+    expect(shopStatus(shop({ openingHours: late }), kl('2026-11-07T01:30'))).toEqual({ open: true, closesAt: '02:00' });
+    // Only "24:00" with nothing straight after it stays midnight.
+    expect(shopStatus(shop({ openingHours: { ...late, sat: [] } }), kl('2026-11-06T23:00'))).toEqual({ open: true, closesAt: '24:00' });
+  });
+
+  it('has no closing time for a shop open all day every day', () => {
+    const allDay = [{ open: '00:00', close: '24:00' }];
+    const always: OpeningHours = { mon: allDay, tue: allDay, wed: allDay, thu: allDay, fri: allDay, sat: allDay, sun: allDay };
+    expect(shopStatus(shop({ openingHours: always }), kl('2026-11-03T12:00'))).toEqual({ open: true, closesAt: null });
+  });
+
   it('finds next week when the only open day has passed', () => {
     const once: OpeningHours = { ...hours, tue: [{ open: '08:00', close: '09:00' }], wed: [] };
     expect(shopStatus(shop({ openingHours: once }), kl('2026-11-03T10:00'))).toMatchObject({ next: { day: 'tue', daysAhead: 7 } });
