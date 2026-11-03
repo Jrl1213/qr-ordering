@@ -3,7 +3,7 @@ import { shopConfig, type Language, type Weekday } from '../data/shop';
 // The app's own text in each language (the same for every shop).
 // A shop's own text (name, hero, categories…) is in its config in shops/.
 const en = {
-  table: 'Table', dineIn: 'Dine in', open: 'Open now',
+  table: 'Table', scanToOrder: 'Scan to order', dineIn: 'Dine in', open: 'Open now',
   popular: 'Popular', favourites: 'House favourites', items: 'items', unavailable: 'Sold out', from: 'from', add: 'Add',
   noTableTitle: 'No table number found', noTableBody: 'Please scan the QR code on your table.',
   choose: 'Make it yours', quantity: 'Quantity', note: 'Special note (optional)', noteHint: 'e.g. no spring onion', cancel: 'Cancel', addToOrder: 'Add to order', updateOrder: 'Update item',
@@ -20,7 +20,7 @@ export type Copy = typeof en;
 export const copy: Record<Language, Copy> = {
   en,
   zh: {
-    table: '桌號', dineIn: '堂食', open: '營業中',
+    table: '桌號', scanToOrder: '掃碼點餐', dineIn: '堂食', open: '營業中',
     popular: '人氣', favourites: '店內人氣', items: '款', unavailable: '售罄', from: '起', add: '加入',
     noTableTitle: '找不到桌號', noTableBody: '請掃描桌上的 QR 碼。',
     choose: '選擇口味', quantity: '數量', note: '備註（選填）', noteHint: '例如：不要蔥', cancel: '取消', addToOrder: '加入訂單', updateOrder: '更新品項',
@@ -32,7 +32,7 @@ export const copy: Record<Language, Copy> = {
     days: { mon: '星期一', tue: '星期二', wed: '星期三', thu: '星期四', fri: '星期五', sat: '星期六', sun: '星期日' },
   },
   ms: {
-    table: 'Meja', dineIn: 'Makan sini', open: 'Dibuka',
+    table: 'Meja', scanToOrder: 'Imbas untuk pesan', dineIn: 'Makan sini', open: 'Dibuka',
     popular: 'Popular', favourites: 'Kegemaran ramai', items: 'hidangan', unavailable: 'Habis', from: 'dari', add: 'Tambah',
     noTableTitle: 'Nombor meja tiada', noTableBody: 'Sila imbas kod QR di meja anda.',
     choose: 'Pilih citarasa anda', quantity: 'Kuantiti', note: 'Nota khas (pilihan)', noteHint: 'cth. tanpa daun bawang', cancel: 'Batal', addToOrder: 'Tambah ke pesanan', updateOrder: 'Kemas kini item',
