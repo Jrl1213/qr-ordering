@@ -27,10 +27,23 @@ function sampleMessage(): string {
 const withBold = (line: string) =>
   line.split(/\*([^*]+)\*/).map((part, index) => (index % 2 ? <strong key={index}>{part}</strong> : part));
 
+// Simple outline icons in the shop's colour (currentColor), so they look the same on every phone.
+const svgProps = { viewBox: '0 0 48 48', width: 48, height: 48, fill: 'none', stroke: 'currentColor', strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true } as const;
+const ScanIcon = () => (
+  <svg {...svgProps}><rect x="12" y="4" width="24" height="40" rx="5" /><rect x="18" y="12" width="7" height="7" /><rect x="29" y="12" width="3" height="3" /><rect x="18" y="23" width="3" height="3" /><rect x="24" y="23" width="8" height="8" /></svg>
+);
+const ChooseIcon = () => (
+  <svg {...svgProps}><rect x="9" y="6" width="30" height="36" rx="4" /><path d="M16 17h16M16 25h16M16 33h9" /></svg>
+);
+const SendIcon = () => (
+  <svg {...svgProps}><path d="M8 10h32a2 2 0 0 1 2 2v20a2 2 0 0 1-2 2H24l-9 8v-8H8a2 2 0 0 1-2-2V12a2 2 0 0 1 2-2z" /><path d="M14 18h20M14 25h12" /></svg>
+);
+
+// One line each: the diagram is for a quick look, the sample message below shows the detail.
 const steps = [
-  { title: 'The customer scans the code on the table', body: 'Each table has its own printed QR card. Scanning it opens your menu on their phone, with the table number already attached. No app to install and no sign-up.' },
-  { title: 'They choose their food', body: 'They browse the menu in English, 中文 or Bahasa Malaysia, pick options such as spice level, add a note, and see the total with tax before they send anything.' },
-  { title: 'The order arrives on your WhatsApp', body: 'One tap opens WhatsApp with the whole order written out, and they press send. It lands in the shop’s own WhatsApp chat, so there is no new screen for your team to learn.' },
+  { side: 'Customer', Icon: ScanIcon, label: 'Scans the QR on the table', hint: 'Each table’s code already holds its table number.' },
+  { side: 'Customer', Icon: ChooseIcon, label: 'Picks food and sends', hint: '' },
+  { side: 'Your shop', Icon: SendIcon, label: 'Gets the order on WhatsApp', hint: '' },
 ];
 
 export default function HowItWorks() {
@@ -40,11 +53,18 @@ export default function HowItWorks() {
       <header className="how-header">
         <span className="private-badge">FOR CAFÉ OWNERS</span>
         <h1>How QR ordering works</h1>
-        <p>Three steps from the customer’s table to your counter. This is a sample using the {shopConfig.name} menu.</p>
+        <p>From the customer’s table to your WhatsApp, in three steps. The sample below uses the {shopConfig.name} menu.</p>
       </header>
 
-      <ol className="how-steps">
-        {steps.map((step) => <li key={step.title}><h2>{step.title}</h2><p>{step.body}</p></li>)}
+      <ol className="how-flow" aria-label="The three steps">
+        {steps.map(({ side, Icon, label, hint }) => (
+          <li key={label} className={side === 'Your shop' ? 'is-shop' : undefined}>
+            <span className="flow-side">{side}</span>
+            <span className="flow-icon"><Icon /></span>
+            <strong>{label}</strong>
+            {hint && <small>{hint}</small>}
+          </li>
+        ))}
       </ol>
 
       <section className="how-sample" aria-labelledby="how-sample-title">
