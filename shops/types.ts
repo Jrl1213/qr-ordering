@@ -10,7 +10,19 @@ export type LocalText = Record<Language, string>;
 // The id of the "Popular" tab. It isn't a real category: it shows dishes marked popular.
 export const POPULAR = 'popular';
 
+// How a finished order reaches the shop. Only WhatsApp today; a server (order board, level B) comes later.
+export const ORDER_CHANNELS = ['whatsapp'] as const;
+export type OrderChannel = (typeof ORDER_CHANNELS)[number];
+
 export type MenuCategory = { id: string; label: LocalText };
+
+// Opening hours: for each day, the times the shop takes orders, in 24-hour "HH:MM" at the shop.
+export const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
+export type Weekday = (typeof WEEKDAYS)[number];
+// close may be "24:00" (midnight). For hours past midnight, split them over two days.
+export type OpeningPeriod = { open: string; close: string };
+// [] means closed all day. Two periods make a break, e.g. [{ open: '08:00', close: '14:00' }, { open: '17:00', close: '21:00' }].
+export type OpeningHours = Record<Weekday, OpeningPeriod[]>;
 
 export type ShopConfig = {
   // Demo mode shows "demo only" notes, the ?table=1 hint and the staff QR link in the footer.
@@ -38,7 +50,19 @@ export type ShopConfig = {
   languages: Language[];
 
   hero: { heading: LocalText; intro: LocalText };
-  // Leave false/null to hide. (There are no real opening hours yet.)
+  // Orders can only be sent while the shop is open. Outside these hours the menu can still be read, but
+  // the add buttons and cart are hidden and the hours are shown. null = no fixed hours, always open.
+  openingHours: OpeningHours | null;
+  // The shop's time zone, so the hours are right even if a phone is set to another one. Malaysia: 'Asia/Kuala_Lumpur'.
+  timeZone: string;
+  // The "shop is closed" switch: true stops all orders, whatever the hours (a holiday, a busy day). It is
+  // part of the site, so changing it needs a new build.
+  temporarilyClosed: boolean;
+  // Shown while temporarilyClosed is true, e.g. "Closed for Hari Raya, back on 2 April". null for the standard text.
+  closedNotice: LocalText | null;
+
+  // "Open now" in the header (or "Closed now"), with the closing time when openingHours is set.
+  // Leave false/null to hide.
   showOpenNow: boolean;
   waitTime: LocalText | null;
   searchHint: LocalText;
@@ -52,7 +76,9 @@ export type ShopConfig = {
   // 0.06 means 6%. Check the real rate with the shop.
   serviceTaxRate: number;
 
-  // International digits only, no +, spaces or dashes. Leave empty for a demo: WhatsApp then
+  // How orders are sent (see ORDER_CHANNELS above).
+  orderChannel: OrderChannel;
+  // For the WhatsApp channel. International digits only, no +, spaces or dashes. Leave empty for a demo: WhatsApp then
   // asks the customer to choose a chat, so a made-up number can never message a real person.
   whatsappNumber: string;
 
