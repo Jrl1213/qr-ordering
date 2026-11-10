@@ -1,11 +1,41 @@
-# Jade Noodle House QR Ordering Demo
+# QR Table Ordering for Small Cafés
 
-A fictional, mobile-first student portfolio project for demonstrating table-side restaurant ordering. It does not collect personal information, process payments or submit real orders.
+A mobile-first ordering page for small cafés and restaurants in Malaysia. Customers scan the QR code on their table, browse the menu in English, Chinese or Malay, pick their dishes and options, and the order arrives on the shop's WhatsApp, already tidied up with the table number and total. No app to install, no server and no customer data stored.
+
+**Live demo:** https://jrl-qr-ordering-demo.netlify.app/?table=5 (a made-up shop, "Jade Noodle House"; no real orders are sent)
+
+## Screenshots
+
+| Menu | Choose options | 中文 | WhatsApp message |
+|---|---|---|---|
+| <img src="docs/screenshots/menu-en.png" alt="Menu page in English for table 5" width="200"> | <img src="docs/screenshots/dish-options.png" alt="Dish sheet with style and spice level choices" width="200"> | <img src="docs/screenshots/menu-zh.png" alt="Menu page in Chinese with two items in the cart" width="200"> | <img src="docs/screenshots/whatsapp-preview.png" alt="Preview of the WhatsApp order message with subtotal, tax and total" width="200"> |
+
+## Features
+
+- **Scan and order:** each table has its own QR code (`?table=5`); the table number goes into the order.
+- **Three languages:** English, 中文 and Bahasa Malaysia, switchable at any time and remembered on the phone.
+- **Dish options:** pick-one choices such as hot or iced, sweetness or spice level, with price changes, plus a special note.
+- **WhatsApp hand-off:** the customer checks the exact message, then sends it to the shop's WhatsApp. Totals include service tax when the shop uses it.
+- **Opening hours:** outside opening hours the menu stays readable but ordering is paused, and the page says when the shop opens again.
+- **Printable QR cards:** a staff page (`/qr`) prints table cards on A4, 4 or 8 per page.
+- **One folder per shop:** a new shop is a copy of a sample folder (`shops/`). A built-in checker stops the build with a plain-English list of mistakes (missing translation, colour too light to read, bad phone number…).
+
+## Tech stack
+
+Next.js 16 (static export, no backend) · React 19 · TypeScript · Tailwind CSS 4 · Vitest (unit tests) · ESLint · `qrcode` · WhatsApp click-to-chat links · Netlify hosting
+
+## How it was built
+
+Built by Jarrell (MMU Diploma in IT student) with AI coding assistants: OpenAI Codex for the first version, then Claude Code. I set the requirements and made the design decisions, reviewed every change through pull requests, and tested on desktop and phone.
+
+## Licence
+
+© 2026 Jarrell. All rights reserved. The code is public so it can be read as a portfolio piece; it is not open source. See [LICENSE](LICENSE).
 
 ## Quick start
 
 1. Install Node.js 22 or newer.
-2. Run `npm install` in this folder.
+2. Run `npm ci` in this folder.
 3. Run `npm run dev`.
 4. Open `http://localhost:3000/?table=1` (use the exact port printed by the terminal).
 
