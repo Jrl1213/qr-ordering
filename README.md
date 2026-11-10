@@ -1,5 +1,7 @@
 # QR Table Ordering for Small Cafés
 
+[![CI](https://github.com/Jrl1213/qr-ordering/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/Jrl1213/qr-ordering/actions/workflows/ci.yml)
+
 A mobile-first ordering page for small cafés and restaurants in Malaysia. Customers scan the QR code on their table, browse the menu in English, Chinese or Malay, pick their dishes and options, and the order arrives on the shop's WhatsApp, already tidied up with the table number and total. No app to install, no server and no customer data stored.
 
 **Live demo:** https://jrl-qr-ordering-demo.netlify.app/?table=5 (a made-up shop, "Jade Noodle House"; no real orders are sent)
@@ -135,6 +137,8 @@ Open `/?table=1`, add an item, then refresh. The cart remains on that device usi
 ## Validation
 
 Run `npm test`, `npm run lint` and `npm run build`. The tests check prices, totals, the WhatsApp message and how it is sent, the cart, the menu tabs and search, the demo wording, and every shop folder in `shops/` (files ending in `.test.ts`). The build makes a plain static website in the `out/` folder. There is no server code, so any static host can serve it.
+
+GitHub Actions runs the same checks (plus a TypeScript type check) on every pull request into `develop` and after each merge into it (`.github/workflows/ci.yml`); the badge at the top shows the latest result on `develop`.
 
 ## Publish on Netlify
 

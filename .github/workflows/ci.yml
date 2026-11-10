@@ -1,0 +1,51 @@
+# Checks every pull request into develop: tests, lint, build and types.
+# It also runs after each merge into develop, so the README badge shows develop's state.
+name: CI
+
+on:
+  pull_request:
+    branches: [develop]
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+# Read-only: this workflow never writes to the repo.
+permissions:
+  contents: read
+
+# A new push to the same PR cancels the older, now outdated run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Test, lint and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v5
+
+      - name: Set up Node 22 (same as Netlify)
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install packages
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Run lint
+        run: npm run lint
+
+      # Also runs the shop config checker; a bad shop stops the build.
+      - name: Build the site
+        run: npm run build
+
+      # After the build, because the build writes next-env.d.ts and .next/types.
+      - name: Check types
+        run: npx tsc --noEmit
